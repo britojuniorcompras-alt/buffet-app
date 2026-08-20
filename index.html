@@ -278,7 +278,9 @@
         <div class="panel-header"><h3>🍽️ Pratos Mais Usados</h3></div>
         <div class="panel-body" id="pratos-populares"></div>
       </div>
-    </div>    <!-- ORÇAMENTOS -->
+    </div>
+
+    <!-- ORÇAMENTOS -->
     <div id="section-orcamentos" class="section">
       <div class="tab-bar">
         <button class="tab-btn active" onclick="filterOrc('todos')">Todos</button>
@@ -636,14 +638,55 @@ if (!DB.clientes.length && !DB.pratos.length) {
     { id: uid(), nome: 'João Costa', tel: '+351 926 543 210', email: 'joao.costa@email.com', morada: 'Av. Liberdade, 45, Porto', notas: '' }
   ];
   DB.pratos = [
-    { id: uid(), nome: 'Bacalhau à Brás', cat: 'Prato Principal', unidade: 'porção', preco: 12.50, rendimento: 1, desc: 'Bacalhau desfiado com ovos e batata palha', obs: 'Contém ovo, peixe', ficha: null },
-    { id: uid(), nome: 'Caldo Verde', cat: 'Entrada', unidade: 'porção', preco: 4.50, rendimento: 1, desc: 'Sopa tradicional portuguesa com chouriço', obs: '', ficha: null },
-    { id: uid(), nome: 'Arroz de Pato', cat: 'Prato Principal', unidade: 'tabuleiro', preco: 45.00, rendimento: 10, desc: 'Arroz de pato confitado com chouriço', obs: '', ficha: null },
-    { id: uid(), nome: 'Pastel de Nata', cat: 'Sobremesa', unidade: 'unidade', preco: 1.80, rendimento: 1, desc: 'Pastel de nata tradicional de Belém', obs: 'Contém glúten, ovo, lactose', ficha: null },
-    { id: uid(), nome: 'Salada Mista', cat: 'Acompanhamento', unidade: 'travessa', preco: 18.00, rendimento: 8, desc: 'Salada fresca com vinagrete de ervas', obs: '', ficha: null },
-    { id: uid(), nome: 'Vinho Tinto Alentejano', cat: 'Bebida', unidade: 'litro', preco: 8.00, rendimento: 1, desc: 'Vinho regional do Alentejo', obs: 'Contém álcool', ficha: null },
-    { id: uid(), nome: 'Polvo à Lagareiro', cat: 'Prato Principal', unidade: 'kg', preco: 28.00, rendimento: 1, desc: 'Polvo assado com azeite e alho', obs: 'Contém molusco', ficha: null },
-    { id: uid(), nome: 'Queijadas de Sintra', cat: 'Sobremesa', unidade: 'unidade', preco: 2.20, rendimento: 1, desc: 'Queijadas tradicionais de Sintra', obs: 'Contém lactose', ficha: null }
+    { id: uid(), nome: 'Bolinho de Bacalhau', cat: 'Entrada', unidade: 'unidade', preco: 2.50, rendimento: 1, desc: 'Bolinho de bacalhau frito', obs: 'Contém peixe e glúten', ficha: null },
+    { id: uid(), nome: 'Croquete de Carne', cat: 'Entrada', unidade: 'unidade', preco: 2.01, rendimento: 1, desc: 'Croquete de carne tradicional', obs: 'Contém glúten', ficha: null },
+    { id: uid(), nome: 'Rissois de Camarão', cat: 'Entrada', unidade: 'unidade', preco: 2.65, rendimento: 1, desc: 'Rissol de camarão frito', obs: 'Contém crustáceo e glúten', ficha: null },
+    { id: uid(), nome: 'Barquinha de Bacalhau Espiritual', cat: 'Entrada', unidade: 'unidade', preco: 4.20, rendimento: 1, desc: 'Barquinha de massa com bacalhau espiritual', obs: 'Contém peixe e glúten', ficha: null },
+    { id: uid(), nome: 'Bruschettas de Tomate com Queijo', cat: 'Entrada', unidade: 'unidade', preco: 3.50, rendimento: 1, desc: 'Bruschetta com tomate e queijo derretido', obs: 'Contém glúten e lactose', ficha: null },
+    { id: uid(), nome: 'Caprese em Palito', cat: 'Entrada', unidade: 'unidade', preco: 2.20, rendimento: 1, desc: 'Tomatinho cereja, búfala e azeitona em palito', obs: 'Contém lactose', ficha: null },
+    { id: uid(), nome: 'Tulipas de Carpaccio de Ojo de Bife', cat: 'Entrada', unidade: 'unidade', preco: 3.73, rendimento: 1, desc: 'Tulipas de carpaccio de ojo de bife', obs: '', ficha: null },
+    { id: uid(), nome: 'Presunto Serrano com Nozetes de Melão', cat: 'Entrada', unidade: 'unidade', preco: 2.80, rendimento: 1, desc: 'Fatias de presunto serrano com melão', obs: '', ficha: null },
+    { id: uid(), nome: 'Bacalhau ao Gosto da Mia', cat: 'Prato Principal', unidade: 'bandeja', preco: 99.81, rendimento: 8, desc: 'Bacalhau assado ao estilo da Mia', obs: 'Contém peixe', ficha: null },
+    { id: uid(), nome: 'Bacalhau ao Forno', cat: 'Prato Principal', unidade: 'bandeja', preco: 215.50, rendimento: 10, desc: 'Bacalhau assado ao forno com azeite e alho', obs: 'Contém peixe', ficha: null },
+    { id: uid(), nome: 'Bacalhau Fernando Pessoa', cat: 'Prato Principal', unidade: 'porção', preco: 45.00, rendimento: 1, desc: 'Bacalhau à moda Fernando Pessoa', obs: 'Contém peixe', ficha: null },
+    { id: uid(), nome: 'Camarão à Bela Sintra', cat: 'Prato Principal', unidade: 'bandeja', preco: 147.50, rendimento: 10, desc: 'Camarão no molho à Bela Sintra', obs: 'Contém crustáceo', ficha: null },
+    { id: uid(), nome: 'Camarão Champanhe', cat: 'Prato Principal', unidade: 'bandeja', preco: 64.00, rendimento: 6, desc: 'Camarão ao champanhe', obs: 'Contém crustáceo', ficha: null },
+    { id: uid(), nome: 'Siri Gratinado', cat: 'Prato Principal', unidade: 'casquinha', preco: 22.00, rendimento: 1, desc: 'Casquinha de siri gratinada', obs: 'Contém crustáceo', ficha: null },
+    { id: uid(), nome: 'Pescada Grelhada', cat: 'Prato Principal', unidade: 'bandeja', preco: 40.35, rendimento: 5, desc: 'Pescada grelhada com ervas', obs: 'Contém peixe', ficha: null },
+    { id: uid(), nome: 'Filé Fatiado ao Molho Mostarda', cat: 'Prato Principal', unidade: 'porção', preco: 22.00, rendimento: 1, desc: 'Filé fatiado ao molho de mostarda', obs: '', ficha: null },
+    { id: uid(), nome: 'Strogonoff de Filé Mignon', cat: 'Prato Principal', unidade: 'bandeja', preco: 48.82, rendimento: 6, desc: 'Strogonoff de filé mignon com arroz e batata palha', obs: '', ficha: null },
+    { id: uid(), nome: 'Picadinho de Filé Mignon', cat: 'Prato Principal', unidade: 'porção', preco: 28.00, rendimento: 1, desc: 'Picadinho de filé mignon com acompanhamentos', obs: '', ficha: null },
+    { id: uid(), nome: 'Arroz de Pato', cat: 'Prato Principal', unidade: 'porção', preco: 32.00, rendimento: 1, desc: 'Arroz de pato confitado', obs: 'Contém aves', ficha: null },
+    { id: uid(), nome: 'Arroz de Frutos do Mar', cat: 'Prato Principal', unidade: 'bandeja', preco: 138.00, rendimento: 10, desc: 'Arroz de frutos do mar', obs: 'Contém frutos do mar', ficha: null },
+    { id: uid(), nome: 'Massa Fresca de Brie ao Tartufo', cat: 'Prato Principal', unidade: 'porção', preco: 28.00, rendimento: 1, desc: 'Massa fresca de brie com mel ao tartufo', obs: 'Contém lactose e glúten', ficha: null },
+    { id: uid(), nome: 'Sorrentini de Brie ao Mel ao Tartufo', cat: 'Prato Principal', unidade: 'bandeja', preco: 35.00, rendimento: 4, desc: 'Mini sorrentini de brie ao mel ao tartufo', obs: 'Contém lactose e glúten', ficha: null },
+    { id: uid(), nome: 'Salada de Pato com Verdurinhas', cat: 'Entrada', unidade: 'porção', preco: 14.42, rendimento: 1, desc: 'Salada de pato com verdurinhas frescas', obs: '', ficha: null },
+    { id: uid(), nome: 'Salada Verde com Mussarela de Búfala', cat: 'Entrada', unidade: 'porção', preco: 12.40, rendimento: 1, desc: 'Salada verde com mussarela de búfala, tomate cereja e azeitona', obs: 'Contém lactose', ficha: null },
+    { id: uid(), nome: 'Salada Verde com Palmito e Alcachofra', cat: 'Entrada', unidade: 'porção', preco: 9.50, rendimento: 1, desc: 'Salada verde com palmito, alcachofra e lascas de parmesão', obs: 'Contém lactose', ficha: null },
+    { id: uid(), nome: 'Legumes Grelhados', cat: 'Acompanhamento', unidade: 'porção', preco: 15.00, rendimento: 1, desc: 'Mix de legumes grelhados', obs: '', ficha: null },
+    { id: uid(), nome: 'Caldo de Mandioca', cat: 'Entrada', unidade: 'porção', preco: 16.00, rendimento: 1, desc: 'Caldo de mandioca cremoso', obs: '', ficha: null },
+    { id: uid(), nome: 'Creme de Abóbora com Gengibre', cat: 'Entrada', unidade: 'porção', preco: 4.00, rendimento: 1, desc: 'Creme de abóbora com toque de gengibre', obs: '', ficha: null },
+    { id: uid(), nome: 'Hebinha', cat: 'Entrada', unidade: 'porção', preco: 35.00, rendimento: 4, desc: 'Entrada especial da casa', obs: '', ficha: null },
+    { id: uid(), nome: 'Terrine de Cream Cheese com Pistache', cat: 'Entrada', unidade: 'unidade', preco: 110.00, rendimento: 15, desc: 'Terrine de cream cheese com pistache e damasco', obs: 'Contém lactose e frutos secos', ficha: null },
+    { id: uid(), nome: 'Pastel de Nata', cat: 'Sobremesa', unidade: 'unidade', preco: 2.15, rendimento: 1, desc: 'Pastel de nata tradicional português', obs: 'Contém glúten, ovo, lactose', ficha: null },
+    { id: uid(), nome: 'Sericaia do Alentejo', cat: 'Sobremesa', unidade: 'porção', preco: 20.06, rendimento: 1, desc: 'Sericaia do Alentejo com ameixas', obs: 'Contém ovo e lactose', ficha: null },
+    { id: uid(), nome: 'Mix de Frutas Laminadas', cat: 'Sobremesa', unidade: 'porção', preco: 9.90, rendimento: 1, desc: 'Mix de frutas frescas laminadas', obs: '', ficha: null },
+    { id: uid(), nome: 'Mini Taças de Frutas com Hortelã', cat: 'Sobremesa', unidade: 'unidade', preco: 4.50, rendimento: 1, desc: 'Mini taças de frutas frescas com hortelã', obs: '', ficha: null },
+    { id: uid(), nome: 'Ovos Moles com Amêndoas', cat: 'Sobremesa', unidade: 'porção', preco: 6.00, rendimento: 1, desc: 'Ovos moles tradicionais com amêndoas', obs: 'Contém ovo e frutos secos', ficha: null },
+    { id: uid(), nome: 'Toucinho do Céu', cat: 'Sobremesa', unidade: 'unidade', preco: 60.33, rendimento: 12, desc: 'Toucinho do céu, doce típico português', obs: 'Contém ovo e frutos secos', ficha: null },
+    { id: uid(), nome: 'Rocambole de Chocolate com Baba de Moça', cat: 'Sobremesa', unidade: 'unidade', preco: 45.00, rendimento: 10, desc: 'Rocambole de chocolate com baba de moça', obs: 'Contém ovo, lactose e glúten', ficha: null },
+    { id: uid(), nome: 'Trio de Doces Portugueses', cat: 'Sobremesa', unidade: 'porção', preco: 21.75, rendimento: 1, desc: 'Trio de doces portugueses variados', obs: 'Contém ovo e lactose', ficha: null },
+    { id: uid(), nome: 'Sorvete de Pistache com Farofas', cat: 'Sobremesa', unidade: 'kg', preco: 172.50, rendimento: 12, desc: 'Sorvete de pistache com farofas', obs: 'Contém lactose e frutos secos', ficha: null },
+    { id: uid(), nome: 'Água sem Gás 1,5Lt', cat: 'Bebida', unidade: 'garrafa', preco: 4.50, rendimento: 4, desc: 'Água mineral sem gás 1,5 litro', obs: '', ficha: null },
+    { id: uid(), nome: 'Água com Gás 1,5Lt', cat: 'Bebida', unidade: 'garrafa', preco: 5.00, rendimento: 4, desc: 'Água mineral com gás 1,5 litro', obs: '', ficha: null },
+    { id: uid(), nome: 'Água Tónica', cat: 'Bebida', unidade: 'lata', preco: 3.88, rendimento: 1, desc: 'Água tónica', obs: '', ficha: null },
+    { id: uid(), nome: 'Coca-Cola 2 Litros', cat: 'Bebida', unidade: 'garrafa', preco: 12.00, rendimento: 6, desc: 'Coca-Cola garrafa 2 litros', obs: '', ficha: null },
+    { id: uid(), nome: 'Coca-Cola Zero 2 Litros', cat: 'Bebida', unidade: 'garrafa', preco: 13.50, rendimento: 6, desc: 'Coca-Cola Zero garrafa 2 litros', obs: '', ficha: null },
+    { id: uid(), nome: 'Guaraná 2Lt', cat: 'Bebida', unidade: 'garrafa', preco: 12.00, rendimento: 6, desc: 'Guaraná garrafa 2 litros', obs: '', ficha: null },
+    { id: uid(), nome: 'Guaraná Zero 2Lt', cat: 'Bebida', unidade: 'garrafa', preco: 12.00, rendimento: 6, desc: 'Guaraná Zero garrafa 2 litros', obs: '', ficha: null },
+    { id: uid(), nome: 'Espumante Talise Brut', cat: 'Bebida', unidade: 'garrafa', preco: 57.54, rendimento: 6, desc: 'Espumante Talise Brut 750ml', obs: 'Contém álcool', ficha: null },
+    { id: uid(), nome: 'Cerveja Heineken', cat: 'Bebida', unidade: 'unidade', preco: 5.65, rendimento: 1, desc: 'Cerveja Heineken long neck', obs: 'Contém álcool e glúten', ficha: null },
+    { id: uid(), nome: 'Sucos Naturais', cat: 'Bebida', unidade: 'litro', preco: 12.00, rendimento: 4, desc: 'Sucos naturais de frutas variadas', obs: '', ficha: null }
   ];
   const cli1 = DB.clientes[0].id;
   const cli2 = DB.clientes[1].id;
