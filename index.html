@@ -611,103 +611,241 @@ async function saveOrc() {
       const num = parseInt(cfg.data?.value||1);
       const res = await sb.from('orcamentos').insert({
         numero: num, cliente_id: cliId, cliente_nome: cliNome,
-        data_evento: data, hora_evento: document.getElem[RY
-	ÛÜ˜ËZÜ˜IÊK˜[YKˆØØ[Ù]™[ÎˆØİ[Y[™Ù][[Y[RY
-	ÛÜ˜Ë[ØØ[	ÊK˜[YKˆ[WÜ\ÜÛØ\Îˆ\œÙR[
-Øİ[Y[™Ù][[Y[RY
-	ÛÜ˜Ë\\ÜÛØ\ÉÊK˜[YJ_Kˆİ]\ÎˆØİ[Y[™Ù][[Y[RY
-	ÛÜ˜Ë\İ]\ÉÊK˜[YKˆ›İ\ÎˆØİ[Y[™Ù][[Y[RY
-	ÛÜ˜Ë[ØœÉÊK˜[YKˆİ[ˆJKœÙ[Xİ
+        data_evento: data, hora_evento: document.getElementById('orc-hora').value,
+        local_evento: document.getElementById('orc-local').value,
+        num_pessoas: parseInt(document.getElementById('orc-pessoas').value)||1,
+        status: document.getElementById('orc-status').value,
+        notas: document.getElementById('orc-obs').value,
+        total
+      }).select().single();
+      orcId = res.data.id;
+      await sb.from('config').update({value: String(num+1)}).eq('key','next_orc_num');
+    }
+    if (_orcFormItens.length) {
+      await sb.from('orcamento_itens').insert(_orcFormItens.map(i=>({
+        orcamento_id: orcId, prato_id: i.pratoId, nome_prato: i.nome,
+        categoria: i.cat, quantidade: i.qtd, preco_unit: i.preco, subtotal: i.sub
+      })));
+    }
+    await loadAll();
+    toast('OrÃ§amento guardado!');
+    nav('orcamentos');
+  } catch(e) { toast('Erro: '+e.message, true); }
+  showLoader(false);
+}
 
-KœÚ[™ÛJ
-NÂˆÜ˜ÒYH™\Ë™]KšYÂˆ]ØZ]Ø‹™œ›ÛJ	ØÛÛ™šYÉÊK\]Jİ˜[YNˆİš[™Ê[JÌJ_JK™\J	ÚÙ^IË	Û™^ÛÜ˜×Û[IÊNÂˆBˆYˆ
-ÛÜ˜Ñ›Ü›R][œË›[™İ
-HÂˆ]ØZ]Ø‹™œ›ÛJ	ÛÜ˜Ø[Y[×Ú][œÉÊKš[œÙ\
-ÛÜ˜Ñ›Ü›R][œË›X\
-OOŠÂˆÜ˜Ø[Y[×ÚYˆÜ˜ÒY˜]×ÚYˆKœ˜]ÒY›ÛYWÜ˜]ÎˆK››ÛYKˆØ]YÛÜšXNˆK˜Ø]]X[YYNˆKœ]™XÛ×İ[š]ˆKœ™XÛËİXİ[ˆKœİX‚ˆJJJNÂˆBˆ]ØZ]ØY[
+function editOrc(id) {
+  const orc = _orcamentos.find(o=>o.id===id);
+  if (!orc) return;
+  nav('novo-orc');
+  initOrcForm(orc);
+}
 
-NÂˆØ\İ
-	ÓÜ°éØ[Y[ÈİX\™YÈIÊNÂˆ˜]Š	ÛÜ˜Ø[Y[ÜÉÊNÂˆHØ]Ú
-JHÈØ\İ
-	Ñ\œ›Îˆ	ÊÙK›Y\ÜØYÙKYJNÈBˆÚİÓØY\Š˜[ÙJNÂŸB‚™[˜İ[ÛˆY]Ü˜ÊY
-HÂˆÛÛœİÜ˜ÈHÛÜ˜Ø[Y[ÜË™š[™
-ÏO›ËšYOOZY
-NÂˆYˆ
-[Ü˜ÊH™]\›Âˆ˜]Š	Û›İ›Ë[Ü˜ÉÊNÂˆ[š]Ü˜Ñ›Ü›JÜ˜ÊNÂŸB‚‹ËÈÓQS•TÂ›]ØÛY[\×Ùš[\™YH×NÂ™[˜İ[Ûˆ™[™\ÛJ
-HÂˆØÛY[\×Ùš[\™YHË‹‹—ØÛY[\×NÂˆ™[™\ÛUX›J
-NÂŸB™[˜İ[Ûˆš[\ÛJ
-HÂˆÛÛœİHHØİ[Y[™Ù][[Y[RY
-	ÜÙX\˜ÚXÛIÊK˜[YKÓİÙ\Ø\ÙJ
-NÂˆØÛY[\×Ùš[\™YHØÛY[\Ë™š[\ŠÈO‚ˆË››ÛYKÓİÙ\Ø\ÙJ
-Kš[˜ÛY\ÊJH
-Ë™[XZ[	ÉÊKÓİÙ\Ø\ÙJ
-Kš[˜ÛY\ÊJH
-Ë[Y›Û™_	ÉÊKš[˜ÛY\ÊJBˆ
-NÂˆ™[™\ÛUX›J
-NÂŸB™[˜İ[Ûˆ™[™\ÛUX›J
-HÂˆÛÛœİÜ˜\HØİ[Y[™Ù][[Y[RY
-	İ›XÛK]Ü˜\	ÊNÂˆYˆ
-WØÛY[\×Ùš[\™Y›[™İ
-HÂˆÜ˜\š[›™\’SH	Ï]ˆÛ\ÜÏH™[\K\İ]H]ˆÛ\ÜÏH˜šYÈ¼'äiOÙ]“™[š[HÛY[H™YÚ\İYÏÜÙ]‰ÎÈ™]\›ÂˆBˆÜ˜\š[›™\’SHX›O‚ˆXY“›ÛYOİ‘[XZ[İ•[Y›Û™Oİ“[Ü˜YOİpéğíY\ÏİİİXY‚ˆ›ÙO‰×ØÛY[\×Ùš[\™Y›X\
-ÏO˜ˆ‚ˆİ›Û™Ï‰ØË››ÛY_OÜİ›Û™Ïİ‚ˆ‰ØË™[XZ[	ø %	ßOİ‚ˆ‰ØË[Y›Û™_	ø %	ßOİ‚ˆ‰ØË›[Ü˜Y_	ø %	ßOİ‚ˆ‚ˆ]ÛˆÛ\ÜÏH˜ˆ‹[İ][™H‹\ÛHˆÛ˜ÛXÚÏH™Y]ÛJ	ÉØËšYIÊH¸§#ûî#ÈY]\Ø]Û‚ˆ]ÛˆÛ\ÜÏH˜ˆ‹Y[™Ù\ˆ‹\ÛHˆÛ˜ÛXÚÏH™[ÛJ	ÉØËšYIÊH¼'åäOØ]Û‚ˆİ‚ˆİ˜
-Kš›Ú[Š	ÉÊ_Bˆİ›ÙOİX›O˜ÂŸB‚™[˜İ[ÛˆÜ[ÛY[S[Ù[
-ÛO[[
-HÂˆØİ[Y[™Ù][[Y[RY
-	Û[Ù[XÛK]]IÊK^ÛÛ[HÛHÈ	ÑY]\ˆÛY[IÈˆ	Ó›İ›ÈÛY[IÎÂˆØİ[Y[™Ù][[Y[RY
-	ØÛK[›ÛYIÊK˜[YHHÛHÈÛK››ÛYHˆ	ÉÎÂˆØİ[Y[™Ù][[Y[RY
-	ØÛKY[XZ[	ÊK˜[YHHÛHÈÛK™[XZ[	ÉÈˆ	ÉÎÂˆØİ[Y[™Ù][[Y[RY
-	ØÛK][	ÊK˜[YHHÛHÈÛK[Y›Û™_	ÉÈˆ	ÉÎÂˆØİ[Y[™Ù][[Y[RY
-	ØÛK[[Ü˜YIÊK˜[YHHÛHÈÛK›[Ü˜Y_	ÉÈˆ	ÉÎÂˆØİ[Y[™Ù][[Y[RY
-	ØÛK[›İ\ÉÊK˜[YHHÛHÈÛK››İ\ß	ÉÈˆ	ÉÎÂˆØİ[Y[™Ù][[Y[RY
-	ØÛKYY]ZY	ÊK˜[YHHÛHÈÛKšYˆ	ÉÎÂˆÜ[“[Ù[
-	Û[Ù[XÛIÊNÂŸB™[˜İ[ÛˆY]ÛJY
-HÈÜ[ÛY[S[Ù[
-ØÛY[\Ë™š[™
-ÏO˜ËšYOOZY
-JNÈB‚˜\Ş[˜È[˜İ[ÛˆØ]™PÛJ
-HÂˆÛÛœİ›ÛYHHØİ[Y[™Ù][[Y[RY
-	ØÛK[›ÛYIÊK˜[YKš[J
-NÂˆYˆ
-[›ÛYJHÈØ\İ
-	Ó›ÛYHØœšYØ]0ìÜš[ÉËYJNÈ™]\›ÈBˆÛÛœİ]HHÈ›ÛYK[XZ[ˆØİ[Y[™Ù][[Y[RY
-	ØÛKY[XZ[	ÊK˜[YK[Y›Û™NˆØİ[Y[™Ù][[Y[RY
-	ØÛK][	ÊK˜[YK[Ü˜YNˆØİ[Y[™Ù][[Y[RY
-	ØÛK[[Ü˜YIÊK˜[YK›İ\ÎˆØİ[Y[™Ù][[Y[RY
-	ØÛK[›İ\ÉÊK˜[YHNÂˆÛÛœİY]YHØİ[Y[™Ù][[Y[RY
-	ØÛKYY]ZY	ÊK˜[YNÂˆÚİÓØY\ŠYJNÂˆYˆ
-Y]Y
-H]ØZ]Ø‹™œ›ÛJ	ØÛY[\ÉÊK\]J]JK™\J	ÚY	ËY]Y
-NÂˆ[ÙH]ØZ]Ø‹™œ›ÛJ	ØÛY[\ÉÊKš[œÙ\
-]JNÂˆ]ØZ]ØY[
+// CLIENTES
+let _clientes_filtered = [];
+function renderCli() {
+  _clientes_filtered = [..._clientes];
+  renderCliTable();
+}
+function filterCli() {
+  const q = document.getElementById('search-cli').value.toLowerCase();
+  _clientes_filtered = _clientes.filter(c =>
+    c.nome.toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q) || (c.telefone||'').includes(q)
+  );
+  renderCliTable();
+}
+function renderCliTable() {
+  const wrap = document.getElementById('tbl-cli-wrap');
+  if (!_clientes_filtered.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="big">ğŸ‘¥</div><p>Nenhum cliente registado</p></div>'; return;
+  }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Morada</th><th>AÃ§Ãµes</th></tr></thead>
+    <tbody>${_clientes_filtered.map(c=>`
+      <tr>
+        <td><strong>${c.nome}</strong></td>
+        <td>${c.email||'â€”'}</td>
+        <td>${c.telefone||'â€”'}</td>
+        <td>${c.morada||'â€”'}</td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="editCli('${c.id}')">âœï¸ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="delCli('${c.id}')">ğŸ—‘</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
 
-NÂˆÚİÓØY\Š˜[ÙJNÂˆÛÜÙS[Ù[
-	Û[Ù[XÛIÊNÂˆØ\İ
-	ĞÛY[HİX\™YÈIÊNÂˆ™[™\ÛJ
-NÂŸB‚˜\Ş[˜È[˜İ[Ûˆ[ÛJY
-HÂˆYˆ
-XÛÛ™š\›J	Ñ[[Z[˜\ˆ\İHÛY[OÉÊJH™]\›ÂˆÚİÓØY\ŠYJNÂˆ]ØZ]Ø‹™œ›ÛJ	ØÛY[\ÉÊK™[]J
-K™\J	ÚY	ËY
-NÂˆ]ØZ]ØY[
+function openClienteModal(cli=null) {
+  document.getElementById('modal-cli-title').textContent = cli ? 'Editar Cliente' : 'Novo Cliente';
+  document.getElementById('cli-nome').value = cli ? cli.nome : '';
+  document.getElementById('cli-email').value = cli ? cli.email||'' : '';
+  document.getElementById('cli-tel').value = cli ? cli.telefone||'' : '';
+  document.getElementById('cli-morada').value = cli ? cli.morada||'' : '';
+  document.getElementById('cli-notas').value = cli ? cli.notas||'' : '';
+  document.getElementById('cli-edit-id').value = cli ? cli.id : '';
+  openModal('modal-cli');
+}
+function editCli(id) { openClienteModal(_clientes.find(c=>c.id===id)); }
 
-NÂˆÚİÓØY\Š˜[ÙJNÂˆØ\İ
-	ĞÛY[H[[Z[˜YÉÊNÂˆ™[™\ÛJ
-NÂŸB‚‹ËÈĞT‘0àTSÂ™[˜İ[Ûˆ™[™\Ø\™
+async function saveCli() {
+  const nome = document.getElementById('cli-nome').value.trim();
+  if (!nome) { toast('Nome obrigatÃ³rio', true); return; }
+  const data = { nome, email: document.getElementById('cli-email').value, telefone: document.getElementById('cli-tel').value, morada: document.getElementById('cli-morada').value, notas: document.getElementById('cli-notas').value };
+  const editId = document.getElementById('cli-edit-id').value;
+  showLoader(true);
+  if (editId) await sb.from('clientes').update(data).eq('id', editId);
+  else await sb.from('clientes').insert(data);
+  await loadAll();
+  showLoader(false);
+  closeModal('modal-cli');
+  toast('Cliente guardado!');
+  renderCli();
+}
 
-HÂˆÛÛœİØ]ÈHÉÕÙÜÉË‹‹›™]ÈÙ]
-Ü˜]ÜË›X\
-Oœ˜Ø]YÛÜšXJJWNÂˆØİ[Y[™Ù][[Y[RY
-	ØØ]]YÜÉÊKš[›™\’SHØ]Ë›X\
-ÏO˜Ü[ˆÛ\ÜÏHYÈ	ØÏOOWØØ\™Ø]ÉØXİ]™IÎ‰ÉßHˆÛ˜ÛXÚÏHœÙ]Ø\™Ø]
-	ÉØßIÊH‰ØßOÜÜ[˜
-Kš›Ú[Š	ÉÊNÂˆÛÛœİHH
-Øİ[Y[™Ù][[Y[RY
-	ÜÙX\˜ÚXØ\™	Ê_ßJK˜[Y_	ÉÎÂˆÛÛœİš[\™YHÜ˜]ÜË™š[\ŠO‚ˆ
-ØØ\™Ø]OOIÕÙÜÉß˜Ø]YÛÜšXOOOWØØ\™Ø]
-H	‰‚ˆ
-››ÛYKÓİÙ\Ø\ÙJ
-Kš[˜ÛY\ÊKÓİÙ\Ø\ÙJ
-J_˜Ø]YÛÜšXKÓİÙ\Ø\ÙJ
-Kš[˜ÛY\ÊKÓİÙ\Ø\ÙJ
-JJBˆ
-NÂˆØİ[Y[™Ù][[Y[RY
-	ØØ\™YÜšY	ÊKš[›™\’TÔÂÒf–ÇFW&VBæÆVæwF‚òf–ÇFW&VBæÖ‡Óæ ¢ÆF—b6Æ73Ò'&FòÖ6&B#à¢Ç7â6Æ73Ò&&FvRÖ6B#âG·æ6FVv÷&–ÓÂ÷7ãà¢ÆF—b6Æ73Ò'&FòÖæöÖR#âG·ææöÖWÓÂöF—cà¢ÆF—b6Æ73Ò'&Fò×&V6ò#âG¶f×DUU"‡ç&V6õ÷Væ—B—ÓÂöF—cà¢ÆF—b6Æ73Ò'&FòÖFW62#âG·æFW67&–6÷ÇÂrwÓÂöF—cà¢ÆF—b6Æ73Ò'&FòÖ7F–öç2#à¢Æ'WGFöâ6Æ73Ò&'Fâ'FâÖ÷WFÆ–æR'Fâ×6Ò"öæ6Æ–6³Ò&VF—E&Fò‚rG·æ–GÒr’#î)ÈşûˆóÂö'WGFöãà¢Æ'WGFöâ6Æ73Ò&'Fâ'FâÖFævW"'Fâ×6Ò"öæ6Æ–6³Ò&FVÅ&Fò‚rG·æ–GÒr’#ï	ùyÂö'WGFöãà¢ÂöF—cà¢ÂöF—cæ’æ¦ö–â‚rr’¢sÆF—b6Æ73Ò&V×G’×7FFR"7G–ÆSÒ&w&–BÖ6öÇVÖã£òÓ#ãÆF—b6Æ73Ò&&–r#ï	øÛŞûˆóÂöF—cãÇäæVæ‡VÒ&FòVæ6öçG&FóÂ÷ãÂöF—câs°§Ğ¦gVæ7F–öâ6WD6&D6B†2’²ö6&D6CÖ3²&VæFW$6&B‚“²Ğ¦gVæ7F–öâf–ÇFW$6&B‚’²&VæFW$6&B‚“²Ğ ¦gVæ7F–öâ÷Vå&FôÖöFÂ‡ÖçVÆÂ’°¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚vÖöFÂ×&Fò×F—FÆRr’çFW‡D6öçFVçBÒòtVF—F"&Fòr¢tæ÷fò&Fòs°¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚w&FòÖæöÖRr’çfÇVRÒòææöÖR¢rs°¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚w&FòÖ6Br’çfÇVRÒòæ6FVv÷&–¢tVçG&Fs°¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚w&Fò×&V6òr’çfÇVRÒòç&V6õ÷Væ—B¢°¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚w&FòÖFW62r’çfÇVRÒòæFW67&–6÷ÇÂrr¢rs°¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚w&FòÖVF—BÖ–Br’çfÇVRÒòæ–B¢rs°¢÷VäÖöFÂ‚vÖöFÂ×&Fòr“°§Ğ¦gVæ7F–öâVF—E&Fò†–B’²÷Vå&FôÖöFÂ…÷&F÷2æf–æB‡Óçæ–CÓÓÖ–B’“²Ğ ¦7–æ2gVæ7F–öâ6fU&Fò‚’°¢6öç7BæöÖRÒFö7VÖVçBævWDVÆVÖVçD'”–B‚w&FòÖæöÖRr’çfÇVRçG&–Ò‚“°¢–b‚æöÖR’²Fö7B‚tæöÖRö'&–vL;7&–òrÂG'VR“²&WGW&ã²Ğ¢6öç7BFFÒ²æöÖRÂ6FVv÷&–¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚w&FòÖ6Br’çfÇVRÂ&V6õ÷Væ—C¢'6TfÆöB†Fö7VÖVçBævWDVÆVÖVçD'”–B‚w&Fò×&V6òr’çfÇVR—ÇÃÂFW67&–6ó¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚w&FòÖFW62r’çfÇVRÓ°¢6öç7BVF—D–BÒFö7VÖVçBævWDVÆVÖVçD'”–B‚w&FòÖVF—BÖ–Br’çfÇVS°¢6†÷tÆöFW"‡G'VR“°¢–b†VF—D–B’v—B6"æg&öÒ‚w&F÷2r’çWFFR†FF’æW‚v–BrÂVF—D–B“°¢VÇ6Rv—B6"æg&öÒ‚w&F÷2r’æ–ç6W'B†FF“°¢v—BÆöDÆÂ‚“°¢6†÷tÆöFW"†fÇ6R“°¢6Æ÷6TÖöFÂ‚vÖöFÂ×&Fòr“°¢Fö7B‚u&FòwV&FFòr“°¢&VæFW$6&B‚“°§Ğ ¦7–æ2gVæ7F–öâFVÅ&Fò†–B’°¢–b‚6öæf—&Ò‚tVÆ–Ö–æ"W7FR&Fóòr’’&WGW&ã°¢6†÷tÆöFW"‡G'VR“°¢v—B6"æg&öÒ‚w&F÷2r’æFVÆWFR‚’æW‚v–BrÂ–B“°¢v—BÆöDÆÂ‚“°¢6†÷tÆöFW"†fÇ6R“°¢Fö7B‚u&FòVÆ–Ö–æFòr“°¢&VæFW$6&B‚“°§Ğ ¢òòd”4„2L8”4ä”40¦gVæ7F–öâ&VæFW$f–6†2‚’°¢6öç7B6G2Ò²uFöF÷2rÂââææWr6WB…÷&F÷2æÖ‡Óçæ6FVv÷&–’•Ó°¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚vf–6†Ö6B×Fw2r’æ–ææW$…DÔÂÒ6G2æÖ†3ÓæÇ7â6Æ73Ò'FrG¶3ÓÓÕöf–6†6Còv7F—fRs¢rwÒ"öæ6Æ–6³Ò'6WDf–6†6B‚rG¶7Òr’#âG¶7ÓÂ÷7ãæ’æ¦ö–â‚rr“°¢6öç7Bf–ÇFW&VBÒ÷&F÷2æf–ÇFW"‡Óåöf–6†6CÓÓÒuFöF÷2wÇÇæ6FVv÷&–ÓÓÕöf–6†6B“°¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚vf–6†2ÖÆ—7Br’æ–ææW$…DÔÂÒf–ÇFW&VBæÖ‡Óç°¢6öç7B–æw'2Ò'&’æ—4'&’‡æ–æw&VF–VçFW2’òæ–æw&VF–VçFW2¢µÓ°¢&WGW&âÆF—b6Æ73Ò&f–6†Ö6&B#à¢ÆF—b6Æ73Ò&f–6†Ö†VFW"#à¢ÆF—cà¢ÆF—b6Æ73Ò&f–6†×F—GVÆò#âG·ææöÖWÓÂöF—cà¢ÆF—b6Æ73Ò&f–6†ÖÖWF#ãÇ7â6Æ73Ò&&FvRÖ6B#âG·æ6FVv÷&–ÓÂ÷7ãâ+rG¶f×DUU"‡ç&V6õ÷Væ—B—Ò+rG·æFW67&–6÷ÇÂrwÓÂöF—cà¢ÂöF—cà¢Æ'WGFöâ6Æ73Ò&'Fâ'Fâ×&–Ö'’'Fâ×6Ò"öæ6Æ–6³Ò'6fT–æw'2‚rG·æ–GÒr’#ï	ù+âwV&F#Âö'WGFöãà¢ÂöF—cà¢ÆF—b7G–ÆSÒ&föçB×6—¦S£'ƒ¶föçB×vV–v‡C£s¶6öÆ÷#§f"‚ÒÖ6–ç¦ÖW67W&ò“·FW‡B×G&ç6f÷&Ó§WW&66S¶ÆWGFW"×76–æs£ãWƒ¶Ö&v–âÖ&÷GFöÓ£‡‚#ä–æw&VF–VçFW3ÂöF—cà¢ÆF—b7G–ÆSÒ&F—7Æ“¦w&–C¶w&–B×FV×ÆFRÖ6öÇVÖç3£g"‚ƒ‚3'ƒ¶v£gƒ¶Ö&v–âÖ&÷GFöÓ£gƒ¶föçB×6—¦S£ƒ¶föçB×vV–v‡C£s¶6öÆ÷#§f"‚ÒÖ6–ç¦ÖW67W&ò’#à¢Ç7ãä”äu$TD”TåDSÂ÷7ããÇ7ãåTåD”DDSÂ÷7ããÇ7ãåTä”DDSÂ÷7ããÇ7ããÂ÷7ãà¢ÂöF—cà¢ÇVÂ6Æ73Ò&–æw"ÖÆ—7B"–CÒ&–æw"ÒG·æ–GÒ#à¢G¶–æw'2æÖ‚†–ærÆ’“Óæ ¢ÆÆ’6Æ73Ò&–æw"×&÷r#à¢Æ–çWBG—SÒ'FW‡B"fÇVSÒ"G¶–ærææöÖWÇÂrwÒ"Æ6V†öÆFW#Ò$Wƒ¢&6Æ†R"öæ6†ævSÒ'WFFT–æw"‚rG·æ–GÒrÂG¶—ÒÂvæöÖRrÇF†—2çfÇVR’#à¢Æ–çWBG—SÒ&çVÖ&W""fÇVSÒ"G¶–ærçFGÇÂrwÒ"Æ6V†öÆFW#Ò#"Ö–ãÒ#"7FWÒ#ã"öæ6†ævSÒ'WFFT–æw"‚rG·æ–GÒrÂG¶—ÒÂwFBrÇF†—2çfÇVR’#à¢Æ–çWBG—SÒ'FW‡B"fÇVSÒ"G¶–ærçVæGÇÂrwÒ"Æ6V†öÆFW#Ò&¶r÷VâôÂ"öæ6†ævSÒ'WFFT–æw"‚rG·æ–GÒrÂG¶—ÒÂ'VæBrÇF†—2çfÇVR’#à¢Æ'WGFöâ6Æ73Ò&'Fâ'FâÖFævW"'Fâ×6Ò"7G–ÆSÒ'FF–æs£G‚‡‚"öæ6Æ–6³Ò'&VÖ÷fT–æw"‚rG·æ–GÒrÂG¶—Ò’#î)ÉSÂö'WGFöãà¢ÂöÆ“æ’æ¦ö–â‚rr—Ğ¢Â÷VÃà¢Æ'WGFöâ6Æ73Ò&'Fâ'FâÖ÷WFÆ–æR'Fâ×6Ò"7G–ÆSÒ&Ö&v–â×F÷£‚"öæ6Æ–6³Ò&FD–æw"‚rG·æ–GÒr’#î)éR–æw&VF–VçFSÂö'WGFöãà¢ÂöF—cæ°¢Ò’æ¦ö–â‚rr“°§Ğ¦gVæ7F–öâ6WDf–6†6B†2’²öf–6†6CÖ3²&VæFW$f–6†2‚“²Ğ ¦gVæ7F–öâvWD–æw'2‡–B’°¢6öç7BÒ÷&F÷2æf–æB‡ƒÓç‚æ–CÓÓ×–B“°¢&WGW&â'&’æ—4'&’‡òæ–æw&VF–VçFW2’ò²ââçæ–æw&VF–VçFW5Ò¢µÓ°§Ğ¦gVæ7F–öâFD–æw"‡–B’°¢6öç7BÒ÷&F÷2æf–æB‡ƒÓç‚æ–CÓÓ×–B“°¢–b‚’&WGW&ã°¢æ–æw&VF–VçFW2Ò²âââ„'&’æ—4'&’‡æ–æw&VF–VçFW2“÷æ–æw&VF–VçFW3¥µÒ’Â¶æöÖS¢rrÇFC¢rrÇVæC¢rwÕÓ°¢&VæFW$f–6†2‚“°§Ğ¦gVæ7F–öâ&VÖ÷fT–æw"‡–BÂ–G‚’°¢6öç7BÒ÷&F÷2æf–æB‡ƒÓç‚æ–CÓÓ×–B“°¢–b‚’&WGW&ã°¢6öç7B'"Ò'&’æ—4'&’‡æ–æw&VF–VçFW2“õ²ââçæ–æw&VF–VçFW5Ó¥µÓ°¢'"ç7Æ–6R†–G‚Ã“°¢æ–æw&VF–VçFW2Ò'#°¢&VæFW$f–6†2‚“°§Ğ¦gVæ7F–öâWFFT–æw"‡–BÂ–G‚Âf–VÆBÂfÂ’°¢6öç7BÒ÷&F÷2æf–æB‡ƒÓç‚æ–CÓÓ×–B“°¢–b‚ÇÂ'&’æ—4'&’‡æ–æw&VF–VçFW2’’&WGW&ã°¢æ–æw&VF–VçFW5¶–G…Õ¶f–VÆEÒÒfÃ°§Ğ ¦7–æ2gVæ7F–öâ6fT–æw'2‡–B’°¢6öç7BÒ÷&F÷2æf–æB‡ƒÓç‚æ–CÓÓ×–B“°¢–b‚’&WGW&ã°¢6†÷tÆöFW"‡G'VR“°¢v—B6"æg&öÒ‚w&F÷2r’çWFFR‡¶–æw&VF–VçFW3¢æ–æw&VF–VçFW7ÇÅµ×Ò’æW‚v–BrÂ–B“°¢v—BÆöDÆÂ‚“°¢6†÷tÆöFW"†fÇ6R“°¢Fö7B‚tf–6†wV&FFr“°¢&VæFW$f–6†2‚“°§Ğ ¢òò”ä•@¢†7–æ2‚’Óâ°¢v—BÆöDÆÂ‚“°¢&VæFW$F6‚‚“°§Ò’‚“°£Â÷67&—Cà£Âö&öG“à£Âö‡FÖÃà
+async function delCli(id) {
+  if (!confirm('Eliminar este cliente?')) return;
+  showLoader(true);
+  await sb.from('clientes').delete().eq('id', id);
+  await loadAll();
+  showLoader(false);
+  toast('Cliente eliminado');
+  renderCli();
+}
+
+// CARDÃPIO
+function renderCard() {
+  const cats = ['Todos', ...new Set(_pratos.map(p=>p.categoria))];
+  document.getElementById('cat-tags').innerHTML = cats.map(c=>`<span class="tag ${c===_cardCat?'active':''}" onclick="setCardCat('${c}')">${c}</span>`).join('');
+  const q = (document.getElementById('search-card')||{}).value||'';
+  const filtered = _pratos.filter(p =>
+    (_cardCat==='Todos'||p.categoria===_cardCat) &&
+    (p.nome.toLowerCase().includes(q.toLowerCase())||p.categoria.toLowerCase().includes(q.toLowerCase()))
+  );
+  document.getElementById('card-grid').innerHTML = filtered.length ? filtered.map(p=>`
+    <div class="prato-card">
+      <span class="badge-cat">${p.categoria}</span>
+      <div class="prato-nome">${p.nome}</div>
+      <div class="prato-preco">${fmtEUR(p.preco_unit)}</div>
+      <div class="prato-desc">${p.descricao||''}</div>
+      <div class="prato-actions">
+        <button class="btn btn-outline btn-sm" onclick="editPrato('${p.id}')">âœï¸</button>
+        <button class="btn btn-danger btn-sm" onclick="delPrato('${p.id}')">ğŸ—‘</button>
+      </div>
+    </div>`).join('') : '<div class="empty-state" style="grid-column:1/-1"><div class="big">ğŸ½ï¸</div><p>Nenhum prato encontrado</p></div>';
+}
+function setCardCat(c) { _cardCat=c; renderCard(); }
+function filterCard() { renderCard(); }
+
+function openPratoModal(p=null) {
+  document.getElementById('modal-prato-title').textContent = p ? 'Editar Prato' : 'Novo Prato';
+  document.getElementById('prato-nome').value = p ? p.nome : '';
+  document.getElementById('prato-cat').value = p ? p.categoria : 'Entrada';
+  document.getElementById('prato-preco').value = p ? p.preco_unit : 0;
+  document.getElementById('prato-desc').value = p ? p.descricao||'' : '';
+  document.getElementById('prato-edit-id').value = p ? p.id : '';
+  openModal('modal-prato');
+}
+function editPrato(id) { openPratoModal(_pratos.find(p=>p.id===id)); }
+
+async function savePrato() {
+  const nome = document.getElementById('prato-nome').value.trim();
+  if (!nome) { toast('Nome obrigatÃ³rio', true); return; }
+  const data = { nome, categoria: document.getElementById('prato-cat').value, preco_unit: parseFloat(document.getElementById('prato-preco').value)||0, descricao: document.getElementById('prato-desc').value };
+  const editId = document.getElementById('prato-edit-id').value;
+  showLoader(true);
+  if (editId) await sb.from('pratos').update(data).eq('id', editId);
+  else await sb.from('pratos').insert(data);
+  await loadAll();
+  showLoader(false);
+  closeModal('modal-prato');
+  toast('Prato guardado!');
+  renderCard();
+}
+
+async function delPrato(id) {
+  if (!confirm('Eliminar este prato?')) return;
+  showLoader(true);
+  await sb.from('pratos').delete().eq('id', id);
+  await loadAll();
+  showLoader(false);
+  toast('Prato eliminado');
+  renderCard();
+}
+
+// FICHAS TÃ‰CNICAS
+function renderFichas() {
+  const cats = ['Todos', ...new Set(_pratos.map(p=>p.categoria))];
+  document.getElementById('ficha-cat-tags').innerHTML = cats.map(c=>`<span class="tag ${c===_fichaCat?'active':''}" onclick="setFichaCat('${c}')">${c}</span>`).join('');
+  const filtered = _pratos.filter(p=>_fichaCat==='Todos'||p.categoria===_fichaCat);
+  document.getElementById('fichas-list').innerHTML = filtered.map(p=>{
+    const ingrs = Array.isArray(p.ingredientes) ? p.ingredientes : [];
+    return `<div class="ficha-card">
+      <div class="ficha-header">
+        <div>
+          <div class="ficha-titulo">${p.nome}</div>
+          <div class="ficha-meta"><span class="badge-cat">${p.categoria}</span> Â· ${fmtEUR(p.preco_unit)} Â· ${p.descricao||''}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveIngrs('${p.id}')">ğŸ’¾ Guardar</button>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--cinza-escuro);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Ingredientes</div>
+      <div style="display:grid;grid-template-columns:1fr 100px 80px 32px;gap:6px;margin-bottom:6px;font-size:11px;font-weight:700;color:var(--cinza-escuro)">
+        <span>INGREDIENTE</span><span>QUANTIDADE</span><span>UNIDADE</span><span></span>
+      </div>
+      <ul class="ingr-list" id="ingr-${p.id}">
+        ${ingrs.map((ing,i)=>`
+          <li class="ingr-row">
+            <input type="text" value="${ing.nome||''}" placeholder="Ex: Bacalhau" onchange="updateIngr('${p.id}',${i},'nome',this.value)">
+            <input type="number" value="${ing.qtd||''}" placeholder="0" min="0" step="0.01" onchange="updateIngr('${p.id}',${i},'qtd',this.value)">
+            <input type="text" value="${ing.und||''}" placeholder="kg/un/L" onchange="updateIngr('${p.id}',${i},'und',this.value)">
+            <button class="btn btn-danger btn-sm" style="padding:4px 8px" onclick="removeIngr('${p.id}',${i})">âœ•</button>
+          </li>`).join('')}
+      </ul>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="addIngr('${p.id}')">â• Ingrediente</button>
+    </div>`;
+  }).join('');
+}
+function setFichaCat(c) { _fichaCat=c; renderFichas(); }
+
+function getIngrs(pid) {
+  const p = _pratos.find(x=>x.id===pid);
+  return Array.isArray(p?.ingredientes) ? [...p.ingredientes] : [];
+}
+function addIngr(pid) {
+  const p = _pratos.find(x=>x.id===pid);
+  if (!p) return;
+  p.ingredientes = [...(Array.isArray(p.ingredientes)?p.ingredientes:[]), {nome:'',qtd:'',und:''}];
+  renderFichas();
+}
+function removeIngr(pid, idx) {
+  const p = _pratos.find(x=>x.id===pid);
+  if (!p) return;
+  const arr = Array.isArray(p.ingredientes)?[...p.ingredientes]:[];
+  arr.splice(idx,1);
+  p.ingredientes = arr;
+  renderFichas();
+}
+function updateIngr(pid, idx, field, val) {
+  const p = _pratos.find(x=>x.id===pid);
+  if (!p||!Array.isArray(p.ingredientes)) return;
+  p.ingredientes[idx][field] = val;
+}
+
+async function saveIngrs(pid) {
+  const p = _pratos.find(x=>x.id===pid);
+  if (!p) return;
+  showLoader(true);
+  await sb.from('pratos').update({ingredientes: p.ingredientes||[]}).eq('id', pid);
+  await loadAll();
+  showLoader(false);
+  toast('Ficha guardada!');
+  renderFichas();
+}
+
+// INIT
+(async () => {
+  await loadAll();
+  renderDash();
+})();
+</script>
+</body>
+</html>
