@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buffet Português — Gestão de Eventos</title>
+<style>
+  :root {
+    --verde: #1a4731;
+    --verde-claro: #2d6a4f;
+    --ouro: #c9a84c;
+    --ouro-claro: #e8c97a;
+    --branco: #fafaf8;
+    --cinza: #f2f2ee;
+    --cinza-medio: #d4d4cc;
+    --cinza-escuro: #8a8a80;
+    --texto: #1a1a16;
+    --perigo: #c0392b;
+    --sucesso: #27ae60;
+    --aviso: #e67e22;
+    --sombra: 0 2px 12px rgba(0,0,0,0.1);
+    --sombra-forte: 0 8px 32px rgba(0,0,0,0.18);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--cinza); color: var(--texto); display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: 240px; min-height: 100vh; background: var(--verde);
+    display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100;
+    box-shadow: 3px 0 16px rgba(0,0,0,0.2);
+  }
+  .logo-area {
+    padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.12);
+    text-align: center;
+  }
+  .logo-area .emoji { font-size: 36px; }
+  .logo-area h1 { color: var(--ouro-claro); font-size: 15px; font-weight: 700; margin-top: 8px; line-height: 1.3; }
+  .logo-area p { color: rgba(255,255,255,0.55); font-size: 11px; margin-top: 3px; }
+  nav { flex: 1; padding: 16px 0; }
+  nav .nav-group-label { color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; padding: 16px 20px 6px; }
+  nav button {
+    width: 100%; display: flex; align-items: center; gap: 12px;
+    padding: 11px 20px; background: none; border: none; cursor: pointer;
+    color: rgba(255,255,255,0.75); font-size: 13.5px; text-align: left;
+    transition: all 0.15s; border-left: 3px solid transparent;
+  }
+  nav button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  nav button.active { background: rgba(201,168,76,0.15); color: var(--ouro-claro); border-left-color: var(--ouro); }
+  nav button .icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-footer small { color: rgba(255,255,255,0.35); font-size: 11px; }
+
+  /* MAIN */
+  #main { margin-left: 240px; flex: 1; min-height: 100vh; }
+  .topbar {
+    background: #fff; padding: 18px 32px; display: flex; align-items: center;
+    justify-content: space-between; border-bottom: 1px solid var(--cinza-medio);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 50;
+  }
+  .topbar h2 { font-size: 20px; font-weight: 700; color: var(--verde); }
+  .topbar .sub { font-size: 13px; color: var(--cinza-escuro); margin-top: 2px; }
+  .topbar-actions { display: flex; gap: 10px; }
+  .content { padding: 28px 32px; }
+
+  /* SECÇÕES */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARDS DASHBOARD */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-bottom: 28px; }
+  .kpi-card {
+    background: #fff; border-radius: 12px; padding: 22px 24px;
+    box-shadow: var(--sombra); border-top: 4px solid var(--ouro);
+  }
+  .kpi-card.verde { border-top-color: var(--verde-claro); }
+  .kpi-card.perigo { border-top-color: var(--perigo); }
+  .kpi-card.aviso { border-top-color: var(--aviso); }
+  .kpi-card .kpi-label { font-size: 12px; color: var(--cinza-escuro); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-card .kpi-val { font-size: 32px; font-weight: 800; color: var(--verde); margin: 6px 0 2px; }
+  .kpi-card .kpi-sub { font-size: 12px; color: var(--cinza-escuro); }
+
+  /* PANEL / CARD */
+  .panel { background: #fff; border-radius: 12px; box-shadow: var(--sombra); margin-bottom: 24px; }
+  .panel-header {
+    padding: 18px 24px; border-bottom: 1px solid var(--cinza); display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .panel-header h3 { font-size: 15px; font-weight: 700; color: var(--verde); }
+  .panel-body { padding: 20px 24px; }
+
+  /* BOTÕES */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer;
+    font-size: 13.5px; font-weight: 600; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--verde); color: #fff; }
+  .btn-primary:hover { background: var(--verde-claro); }
+  .btn-ouro { background: var(--ouro); color: #fff; }
+  .btn-ouro:hover { background: var(--ouro-claro); color: var(--verde); }
+  .btn-outline { background: transparent; border: 1.5px solid var(--cinza-medio); color: var(--texto); }
+  .btn-outline:hover { border-color: var(--verde); color: var(--verde); }
+  .btn-danger { background: var(--perigo); color: #fff; }
+  .btn-danger:hover { background: #a93226; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-xs { padding: 4px 9px; font-size: 11px; }
+
+  /* TABELAS */
+  table { width: 100%; border-collapse: collapse; }
+  thead th { background: var(--cinza); padding: 11px 14px; font-size: 12px; font-weight: 700; color: var(--cinza-escuro); text-align: left; text-transform: uppercase; letter-spacing: 0.5px; }
+  tbody tr { border-bottom: 1px solid var(--cinza); transition: background 0.1s; }
+  tbody tr:hover { background: var(--cinza); }
+  tbody td { padding: 12px 14px; font-size: 13.5px; }
+  tbody tr:last-child { border-bottom: none; }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-verde { background: #d4edda; color: #155724; }
+  .badge-amarelo { background: #fff3cd; color: #856404; }
+  .badge-vermelho { background: #f8d7da; color: #721c24; }
+  .badge-cinza { background: #e9ecef; color: #495057; }
+  .badge-azul { background: #d1ecf1; color: #0c5460; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 16px; width: 100%; max-width: 720px;
+    max-height: 90vh; overflow-y: auto; box-shadow: var(--sombra-forte);
+  }
+  .modal-header {
+    padding: 22px 28px 18px; border-bottom: 1px solid var(--cinza);
+    display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: #fff; z-index: 2;
+  }
+  .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--verde); }
+  .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--cinza-escuro); line-height: 1; }
+  .modal-close:hover { color: var(--perigo); }
+  .modal-body { padding: 24px 28px; }
+  .modal-footer { padding: 18px 28px; border-top: 1px solid var(--cinza); display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* FORMULÁRIOS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-grid.col1 { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.span2 { grid-column: span 2; }
+  .form-group.span3 { grid-column: span 3; }
+  label { font-size: 12.5px; font-weight: 600; color: var(--cinza-escuro); }
+  input, select, textarea {
+    padding: 9px 13px; border: 1.5px solid var(--cinza-medio); border-radius: 8px;
+    font-size: 14px; font-family: inherit; color: var(--texto); background: #fff;
+    transition: border-color 0.15s; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--verde); }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-sep { grid-column: 1 / -1; border: none; border-top: 1px solid var(--cinza); margin: 4px 0; }
+
+  /* ITENS DO ORÇAMENTO */
+  .orcamento-itens { border: 1.5px solid var(--cinza-medio); border-radius: 10px; overflow: hidden; }
+  .orcamento-itens table thead th { background: var(--verde); color: rgba(255,255,255,0.85); }
+  .item-row td { vertical-align: middle; }
+  .item-row input[type=number] { width: 80px; text-align: center; }
+  .item-row .item-total { font-weight: 700; color: var(--verde); }
+  .add-item-row { padding: 12px 14px; background: var(--cinza); display: flex; gap: 10px; align-items: center; }
+  .total-row { background: var(--verde); color: #fff; }
+  .total-row td { padding: 14px; font-weight: 700; font-size: 15px; }
+
+  /* FICHA TÉCNICA */
+  .ingredientes-lista { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .ingrediente-row { display: grid; grid-template-columns: 3fr 1fr 1fr auto; gap: 8px; align-items: center; }
+  .ingrediente-row input { padding: 7px 10px; }
+
+  /* PRINT */
+  @media print {
+    #sidebar, .topbar, .topbar-actions, .btn, .no-print { display: none !important; }
+    #main { margin-left: 0; }
+    .content { padding: 0; }
+    .panel { box-shadow: none; }
+  }
+
+  /* RESPONSIVO */
+  @media (max-width: 768px) {
+    #sidebar { width: 60px; }
+    #sidebar .logo-area h1, #sidebar .logo-area p, nav .nav-group-label, nav button span.label, .sidebar-footer small { display: none; }
+    #main { margin-left: 60px; }
+    .content { padding: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.span2, .form-group.span3 { grid-column: span 1; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* EXTRAS */
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--cinza-escuro); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 15px; }
+  .search-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .search-bar input { flex: 1; }
+  .highlight { background: var(--ouro-claro); padding: 0 2px; border-radius: 3px; }
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 2px solid var(--cinza-medio); }
+  .tab-btn { padding: 10px 18px; background: none; border: none; cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--cinza-escuro); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .tab-btn.active { color: var(--verde); border-bottom-color: var(--verde); }
+  .tab-content { display: none; } .tab-content.active { display: block; }
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+  .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+  .actions-cell { display: flex; gap: 6px; }
+  .price-tag { font-weight: 700; color: var(--verde); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="logo-area">
+    <div class="emoji">🍷</div>
+    <h1>Buffet Português</h1>
+    <p>Gestão de Eventos</p>
+  </div>
+  <nav>
+    <div class="nav-group-label">Principal</div>
+    <button class="active" onclick="goTo('dashboard')">
+      <span class="icon">📊</span><span class="label">Dashboard</span>
+    </button>
+    <div class="nav-group-label">Eventos</div>
+    <button onclick="goTo('orcamentos')">
+      <span class="icon">📋</span><span class="label">Orçamentos</span>
+    </button>
+    <button onclick="goTo('novo-orcamento')">
+      <span class="icon">➕</span><span class="label">Novo Orçamento</span>
+    </button>
+    <div class="nav-group-label">Cadastros</div>
+    <button onclick="goTo('clientes')">
+      <span class="icon">👥</span><span class="label">Clientes</span>
+    </button>
+    <button onclick="goTo('cardapio')">
+      <span class="icon">🍽️</span><span class="label">Cardápio</span>
+    </button>
+    <button onclick="goTo('fichas')">
+      <span class="icon">📄</span><span class="label">Fichas Técnicas</span>
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <small>v1.0 • Buffet Português</small>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main id="main">
+  <div class="topbar">
+    <div>
+      <h2 id="page-title">Dashboard</h2>
+      <div class="sub" id="page-sub">Visão geral dos eventos e orçamentos</div>
+    </div>
+    <div class="topbar-actions" id="topbar-actions"></div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div id="section-dashboard" class="section active">
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>📅 Próximos Eventos</h3>
+            <button class="btn btn-outline btn-sm" onclick="goTo('orcamentos')">Ver todos</button>
+          </div>
+          <div class="panel-body" id="proximos-eventos-list" style="padding:0"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>💰 Orçamentos Recentes</h3></div>
+          <div class="panel-body" id="orcamentos-recentes" style="padding:0"></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:24px">
+        <div class="panel-header"><h3>🍽️ Pratos Mais Usados</h3></div>
+        <div class="panel-body" id="pratos-populares"></div>
+      </div>
+    </div>    <!-- ORÇAMENTOS -->
+    <div id="section-orcamentos" class="section">
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="filterOrc('todos')">Todos</button>
+        <button class="tab-btn" onclick="filterOrc('pendente')">Pendentes</button>
+        <button class="tab-btn" onclick="filterOrc('confirmado')">Confirmados</button>
+        <button class="tab-btn" onclick="filterOrc('concluido')">Concluídos</button>
+        <button class="tab-btn" onclick="filterOrc('cancelado')">Cancelados</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="orc-search" placeholder="🔍 Pesquisar orçamento, cliente..." oninput="renderOrcamentos()">
+        <button class="btn btn-primary" onclick="goTo('novo-orcamento')">➕ Novo Orçamento</button>
+      </div>
+      <div class="panel">
+        <div class="panel-body" style="padding:0">
+          <table>
+            <thead><tr>
+              <th>Nº</th><th>Cliente</th><th>Data Evento</th><th>Local</th>
+              <th>Pessoas</th><th>Total</th><th>Status</th><th>Ações</th>
+            </tr></thead>
+            <tbody id="orc-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOVO ORÇAMENTO -->
+    <div id="section-novo-orcamento" class="section">
+      <div class="panel">
+        <div class="panel-header">
+          <h3 id="form-orc-titulo">📋 Novo Orçamento</h3>
+        </div>
+        <div class="panel-body">
+          <input type="hidden" id="orc-id-edit">
+          <div class="form-grid" style="margin-bottom:20px">
+            <div class="form-group">
+              <label>Cliente *</label>
+              <select id="orc-cliente">
+                <option value="">— Selecione o cliente —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select id="orc-status">
+                <option value="pendente">Pendente</option>
+                <option value="confirmado">Confirmado</option>
+                <option value="concluido">Concluído</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Data do Evento *</label>
+              <input type="date" id="orc-data">
+            </div>
+            <div class="form-group">
+              <label>Horário</label>
+              <input type="time" id="orc-hora" value="19:00">
+            </div>
+            <div class="form-group">
+              <label>Nº de Convidados *</label>
+              <input type="number" id="orc-pessoas" min="1" value="30" oninput="calcTotaisOrc()">
+            </div>
+            <div class="form-group">
+              <label>Local do Evento</label>
+              <input type="text" id="orc-local" placeholder="Morada do cliente...">
+            </div>
+            <div class="form-group span2">
+              <label>Observações</label>
+              <textarea id="orc-obs" rows="2" placeholder="Notas internas, preferências do cliente..."></textarea>
+            </div>
+          </div>
+
+          <h4 style="margin-bottom:14px;color:var(--verde);">🍽️ Itens do Cardápio</h4>
+          <div class="add-item-row" style="border-radius:8px 8px 0 0;margin-bottom:0">
+            <select id="add-prato-select" style="flex:2">
+              <option value="">— Selecione um prato para adicionar —</option>
+            </select>
+            <button class="btn btn-ouro" onclick="addItemOrc()">➕ Adicionar</button>
+          </div>
+          <div class="orcamento-itens">
+            <table>
+              <thead><tr>
+                <th>Prato</th><th>Categoria</th>
+                <th style="text-align:center">Qtd. Unid.</th>
+                <th style="text-align:center">Qtd. Total</th>
+                <th>Preço Unit.</th><th>Subtotal</th><th></th>
+              </tr></thead>
+              <tbody id="itens-orc-tbody"></tbody>
+            </table>
+          </div>
+
+          <div style="margin-top:20px">
+            <div class="form-grid cols3">
+              <div class="form-group">
+                <label>Desconto (R$)</label>
+                <input type="number" id="orc-desconto" value="0" min="0" oninput="calcTotaisOrc()">
+              </div>
+              <div class="form-group">
+                <label>Taxa de Serviço (R$)</label>
+                <input type="number" id="orc-taxa" value="0" min="0" oninput="calcTotaisOrc()">
+              </div>
+              <div class="form-group">
+                <label>Total Estimado</label>
+                <input type="text" id="orc-total-display" readonly style="font-weight:700;color:var(--verde);background:var(--cinza)">
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:24px">
+            <button class="btn btn-primary" onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
+            <button class="btn btn-outline" onclick="goTo('orcamentos')">Cancelar</button>
+            <button class="btn btn-outline no-print" id="btn-imprimir" onclick="imprimirOrcamento()" style="display:none">🖨️ Imprimir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div id="section-clientes" class="section">
+      <div class="search-bar">
+        <input type="text" id="cli-search" placeholder="🔍 Pesquisar cliente..." oninput="renderClientes()">
+        <button class="btn btn-primary" onclick="abrirModalCliente()">➕ Novo Cliente</button>
+      </div>
+      <div class="panel">
+        <div class="panel-body" style="padding:0">
+          <table>
+            <thead><tr><th>Nome</th><th>Telefone</th><th>Email</th><th>Eventos</th><th>Ações</th></tr></thead>
+            <tbody id="cli-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDÁPIO -->
+    <div id="section-cardapio" class="section">
+      <div class="search-bar">
+        <input type="text" id="card-search" placeholder="🔍 Pesquisar prato..." oninput="renderCardapio()">
+        <select id="card-cat-filter" onchange="renderCardapio()" style="width:180px">
+          <option value="">Todas as categorias</option>
+          <option value="Entrada">Entrada</option>
+          <option value="Prato Principal">Prato Principal</option>
+          <option value="Acompanhamento">Acompanhamento</option>
+          <option value="Sobremesa">Sobremesa</option>
+          <option value="Bebida">Bebida</option>
+          <option value="Buffet Frio">Buffet Frio</option>
+          <option value="Buffet Quente">Buffet Quente</option>
+          <option value="Outro">Outro</option>
+        </select>
+        <button class="btn btn-primary" onclick="abrirModalPrato()">➕ Novo Prato</button>
+      </div>
+      <div class="panel">
+        <div class="panel-body" style="padding:0">
+          <table>
+            <thead><tr><th>Prato</th><th>Categoria</th><th>Unidade</th><th>Preço Unit.</th><th>Descrição</th><th>Ações</th></tr></thead>
+            <tbody id="card-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- FICHAS TÉCNICAS -->
+    <div id="section-fichas" class="section">
+      <div class="search-bar">
+        <input type="text" id="fich-search" placeholder="🔍 Pesquisar prato..." oninput="renderFichas()">
+        <select id="fich-cat-filter" onchange="renderFichas()" style="width:180px">
+          <option value="">Todas as categorias</option>
+          <option value="Entrada">Entrada</option>
+          <option value="Prato Principal">Prato Principal</option>
+          <option value="Acompanhamento">Acompanhamento</option>
+          <option value="Sobremesa">Sobremesa</option>
+          <option value="Bebida">Bebida</option>
+          <option value="Buffet Frio">Buffet Frio</option>
+          <option value="Buffet Quente">Buffet Quente</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div id="fichas-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px"></div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- MODAL: CLIENTE -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header">
+      <h3 id="modal-cliente-titulo">👤 Novo Cliente</h3>
+      <button class="modal-close" onclick="fecharModal('modal-cliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cli-id-edit">
+      <div class="form-grid col1">
+        <div class="form-group"><label>Nome Completo *</label><input type="text" id="cli-nome" placeholder="Nome do cliente"></div>
+        <div class="form-group"><label>Telefone / WhatsApp</label><input type="tel" id="cli-tel" placeholder="+351 91x xxx xxx"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="cli-email" placeholder="email@exemplo.com"></div>
+        <div class="form-group"><label>Morada</label><input type="text" id="cli-morada" placeholder="Rua, nº, localidade"></div>
+        <div class="form-group"><label>Notas</label><textarea id="cli-notas" rows="3" placeholder="Preferências, alergias, observações..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-cliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCliente()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PRATO -->
+<div class="modal-overlay" id="modal-prato">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3 id="modal-prato-titulo">🍽️ Novo Prato</h3>
+      <button class="modal-close" onclick="fecharModal('modal-prato')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prato-id-edit">
+      <div class="form-grid">
+        <div class="form-group span2"><label>Nome do Prato *</label><input type="text" id="prato-nome" placeholder="Ex: Bacalhau à Brás"></div>
+        <div class="form-group">
+          <label>Categoria *</label>
+          <select id="prato-cat">
+            <option value="Entrada">Entrada</option>
+            <option value="Prato Principal">Prato Principal</option>
+            <option value="Acompanhamento">Acompanhamento</option>
+            <option value="Sobremesa">Sobremesa</option>
+            <option value="Bebida">Bebida</option>
+            <option value="Buffet Frio">Buffet Frio</option>
+            <option value="Buffet Quente">Buffet Quente</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Unidade de Medida</label>
+          <select id="prato-unidade">
+            <option value="porção">porção</option>
+            <option value="kg">kg</option>
+            <option value="unidade">unidade</option>
+            <option value="litro">litro</option>
+            <option value="travessa">travessa</option>
+            <option value="tabuleiro">tabuleiro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Preço por Unidade (R$) *</label>
+          <input type="number" id="prato-preco" step="0.01" min="0" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label>Rendimento / Pessoas por Unidade</label>
+          <input type="number" id="prato-rendimento" min="1" placeholder="Ex: 1 travessa = 10 pessoas">
+        </div>
+        <div class="form-group span2">
+          <label>Descrição</label>
+          <textarea id="prato-desc" rows="2" placeholder="Breve descrição do prato..."></textarea>
+        </div>
+        <div class="form-group span2">
+          <label>Observações / Alergénios</label>
+          <input type="text" id="prato-obs" placeholder="Ex: Contém glúten, marisco...">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-prato')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarPrato()">💾 Salvar Prato</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: FICHA TÉCNICA -->
+<div class="modal-overlay" id="modal-ficha">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <h3 id="modal-ficha-titulo">📄 Ficha Técnica</h3>
+      <button class="modal-close" onclick="fecharModal('modal-ficha')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ficha-prato-id">
+      <div class="alert alert-info">Ficha técnica associada ao prato. Actualize sempre que a receita mudar.</div>
+      <div class="form-grid cols3" style="margin-bottom:16px">
+        <div class="form-group">
+          <label>Rendimento Total</label>
+          <input type="text" id="ficha-rendimento" placeholder="Ex: 8 porções">
+        </div>
+        <div class="form-group">
+          <label>Tempo de Preparo</label>
+          <input type="text" id="ficha-tempo" placeholder="Ex: 45 min">
+        </div>
+        <div class="form-group">
+          <label>Custo por Porção (R$)</label>
+          <input type="number" id="ficha-custo" step="0.01" placeholder="0,00" readonly style="background:var(--cinza)">
+        </div>
+      </div>
+      <h4 style="margin-bottom:12px;color:var(--verde);">🧂 Ingredientes</h4>
+      <div class="ingredientes-lista" id="ingredientes-lista"></div>
+      <button class="btn btn-outline btn-sm" onclick="addIngrediente()">➕ Adicionar Ingrediente</button>
+      <hr class="form-sep" style="margin:16px 0">
+      <div class="form-grid col1">
+        <div class="form-group">
+          <label>Modo de Preparo</label>
+          <textarea id="ficha-preparo" rows="5" placeholder="Descreva o passo a passo do preparo..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Dicas / Observações</label>
+          <textarea id="ficha-dicas" rows="3" placeholder="Dicas de apresentação, conservação..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-ficha')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarFicha()">💾 Salvar Ficha</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: VER ORÇAMENTO -->
+<div class="modal-overlay" id="modal-ver-orc">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <h3 id="ver-orc-titulo">📋 Detalhes do Orçamento</h3>
+      <button class="modal-close" onclick="fecharModal('modal-ver-orc')">✕</button>
+    </div>
+    <div class="modal-body" id="ver-orc-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-ver-orc')">Fechar</button>
+      <button class="btn btn-outline" id="ver-orc-edit-btn">✏️ Editar</button>
+      <button class="btn btn-primary" onclick="imprimirDetalhes()">🖨️ Imprimir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =============================================
+//  DADOS E PERSISTÊNCIA
+// =============================================
+const DB_KEY = 'buffetPT_db';
+
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(DB_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+function saveDB() {
+  try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
+}
+
+let DB = loadDB() || {
+  clientes: [],
+  pratos: [],
+  orcamentos: [],
+  nextOrcNum: 1
+};
+
+// Dados de exemplo na primeira abertura
+if (!DB.clientes.length && !DB.pratos.length) {
+  DB.clientes = [
+    { id: uid(), nome: 'Maria Fernandes', tel: '+351 912 345 678', email: 'maria@email.com', morada: 'Rua das Flores, 12, Lisboa', notas: 'Prefere buffet às 20h' },
+    { id: uid(), nome: 'João Costa', tel: '+351 926 543 210', email: 'joao.costa@email.com', morada: 'Av. Liberdade, 45, Porto', notas: '' }
+  ];
+  DB.pratos = [
+    { id: uid(), nome: 'Bacalhau à Brás', cat: 'Prato Principal', unidade: 'porção', preco: 12.50, rendimento: 1, desc: 'Bacalhau desfiado com ovos e batata palha', obs: 'Contém ovo, peixe', ficha: null },
+    { id: uid(), nome: 'Caldo Verde', cat: 'Entrada', unidade: 'porção', preco: 4.50, rendimento: 1, desc: 'Sopa tradicional portuguesa com chouriço', obs: '', ficha: null },
+    { id: uid(), nome: 'Arroz de Pato', cat: 'Prato Principal', unidade: 'tabuleiro', preco: 45.00, rendimento: 10, desc: 'Arroz de pato confitado com chouriço', obs: '', ficha: null },
+    { id: uid(), nome: 'Pastel de Nata', cat: 'Sobremesa', unidade: 'unidade', preco: 1.80, rendimento: 1, desc: 'Pastel de nata tradicional de Belém', obs: 'Contém glúten, ovo, lactose', ficha: null },
+    { id: uid(), nome: 'Salada Mista', cat: 'Acompanhamento', unidade: 'travessa', preco: 18.00, rendimento: 8, desc: 'Salada fresca com vinagrete de ervas', obs: '', ficha: null },
+    { id: uid(), nome: 'Vinho Tinto Alentejano', cat: 'Bebida', unidade: 'litro', preco: 8.00, rendimento: 1, desc: 'Vinho regional do Alentejo', obs: 'Contém álcool', ficha: null },
+    { id: uid(), nome: 'Polvo à Lagareiro', cat: 'Prato Principal', unidade: 'kg', preco: 28.00, rendimento: 1, desc: 'Polvo assado com azeite e alho', obs: 'Contém molusco', ficha: null },
+    { id: uid(), nome: 'Queijadas de Sintra', cat: 'Sobremesa', unidade: 'unidade', preco: 2.20, rendimento: 1, desc: 'Queijadas tradicionais de Sintra', obs: 'Contém lactose', ficha: null }
+  ];
+  const cli1 = DB.clientes[0].id;
+  const cli2 = DB.clientes[1].id;
+  const p1 = DB.pratos[0].id, p2 = DB.pratos[1].id, p3 = DB.pratos[3].id, p4 = DB.pratos[5].id;
+  DB.orcamentos = [
+    {
+      id: uid(), num: DB.nextOrcNum++, clienteId: cli1, data: '2026-09-14', hora: '20:00',
+      local: 'Rua das Flores, 12, Lisboa', pessoas: 25, status: 'confirmado',
+      obs: 'Casamento informal', desconto: 0, taxa: 50,
+      itens: [
+        { pratoId: p1, qtd: 25, qtdTotal: 25, precoUnit: 12.50 },
+        { pratoId: p2, qtd: 25, qtdTotal: 25, precoUnit: 4.50 },
+        { pratoId: p3, qtd: 1, qtdTotal: 10, precoUnit: 1.80 },
+        { pratoId: p4, qtd: 8, qtdTotal: 8, precoUnit: 8.00 }
+      ],
+      criadoEm: new Date().toISOString()
+    },
+    {
+      id: uid(), num: DB.nextOrcNum++, clienteId: cli2, data: '2026-08-30', hora: '19:30',
+      local: 'Av. Liberdade, 45, Porto', pessoas: 40, status: 'pendente',
+      obs: 'Aniversário de empresa', desconto: 100, taxa: 80,
+      itens: [
+        { pratoId: p1, qtd: 40, qtdTotal: 40, precoUnit: 12.50 },
+        { pratoId: p4, qtd: 50, qtdTotal: 50, precoUnit: 1.80 }
+      ],
+      criadoEm: new Date(Date.now() - 86400000).toISOString()
+    }
+  ];
+  saveDB();
+}
+
+// =============================================
+//  UTILITÁRIOS
+// =============================================
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2,6); }
+function fmtBRL(v) {
+  return 'R$ ' + (+v || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+function fmtData(s) {
+  if (!s) return '—';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+function calcTotalOrc(orc) {
+  const sub = (orc.itens || []).reduce((a, it) => {
+    return a + (it.qtd * it.precoUnit);
+  }, 0);
+  return sub - (orc.desconto || 0) + (orc.taxa || 0);
+}
+function getCliente(id) { return DB.clientes.find(c => c.id === id); }
+function getPrato(id) { return DB.pratos.find(p => p.id === id); }
+function getStatusBadge(s) {
+  const map = { pendente: 'badge-amarelo', confirmado: 'badge-verde', concluido: 'badge-azul', cancelado: 'badge-vermelho' };
+  const label = { pendente: 'Pendente', confirmado: 'Confirmado', concluido: 'Concluído', cancelado: 'Cancelado' };
+  return `<span class="badge ${map[s]||'badge-cinza'}">${label[s]||s}</span>`;
+}
+function getCatBadge(cat) {
+  const colors = { 'Entrada':'badge-azul','Prato Principal':'badge-verde','Acompanhamento':'badge-cinza',
+    'Sobremesa':'badge-amarelo','Bebida':'badge-vermelho','Buffet Frio':'badge-azul','Buffet Quente':'badge-amarelo','Outro':'badge-cinza' };
+  return `<span class="badge ${colors[cat]||'badge-cinza'}">${cat}</span>`;
+}
+
+// =============================================
+//  NAVEGAÇÃO
+// =============================================
+const sections = {
+  'dashboard': { title: 'Dashboard', sub: 'Visão geral dos eventos e orçamentos' },
+  'orcamentos': { title: 'Orçamentos', sub: 'Lista de todos os orçamentos e eventos' },
+  'novo-orcamento': { title: 'Novo Orçamento', sub: 'Criar orçamento detalhado para um evento' },
+  'clientes': { title: 'Clientes', sub: 'Gestão de clientes e contactos' },
+  'cardapio': { title: 'Cardápio', sub: 'Pratos e produtos pré-cadastrados' },
+  'fichas': { title: 'Fichas Técnicas', sub: 'Receitas e informações técnicas dos pratos' }
+};
+
+function goTo(page) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  const sec = document.getElementById('section-' + page);
+  if (sec) sec.classList.add('active');
+  const navBtns = document.querySelectorAll('nav button');
+  navBtns.forEach(b => { if (b.getAttribute('onclick') === `goTo('${page}')`) b.classList.add('active'); });
+  const info = sections[page] || {};
+  document.getElementById('page-title').textContent = info.title || '';
+  document.getElementById('page-sub').textContent = info.sub || '';
+  const actions = document.getElementById('topbar-actions');
+  actions.innerHTML = '';
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'orcamentos') renderOrcamentos();
+  if (page === 'novo-orcamento') initNovoOrcamento();
+  if (page === 'clientes') renderClientes();
+  if (page === 'cardapio') renderCardapio();
+  if (page === 'fichas') renderFichas();
+}
+
+// =============================================
+//  DASHBOARD
+// =============================================
+function renderDashboard() {
+  const hoje = new Date().toISOString().slice(0,10);
+  const mesAtual = hoje.slice(0,7);
+  const total = DB.orcamentos.length;
+  const confirmados = DB.orcamentos.filter(o => o.status === 'confirmado').length;
+  const pendentes = DB.orcamentos.filter(o => o.status === 'pendente').length;
+  const receitaMes = DB.orcamentos
+    .filter(o => o.data && o.data.startsWith(mesAtual) && o.status !== 'cancelado')
+    .reduce((a, o) => a + calcTotalOrc(o), 0);
+  const proximos = DB.orcamentos
+    .filter(o => o.data >= hoje && o.status !== 'cancelado')
+    .sort((a,b) => a.data.localeCompare(b.data))
+    .slice(0, 3);
+
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi-card verde"><div class="kpi-label">Total de Orçamentos</div><div class="kpi-val">${total}</div><div class="kpi-sub">Desde o início</div></div>
+    <div class="kpi-card"><div class="kpi-label">Receita Estimada (Mês)</div><div class="kpi-val">${fmtBRL(receitaMes)}</div><div class="kpi-sub">${mesAtual.slice(5,7)}/${mesAtual.slice(0,4)}</div></div>
+    <div class="kpi-card aviso"><div class="kpi-label">Eventos Pendentes</div><div class="kpi-val">${pendentes}</div><div class="kpi-sub">Aguardam confirmação</div></div>
+    <div class="kpi-card verde"><div class="kpi-label">Confirmados</div><div class="kpi-val">${confirmados}</div><div class="kpi-sub">Eventos agendados</div></div>
+    <div class="kpi-card"><div class="kpi-label">Pratos Cadastrados</div><div class="kpi-val">${DB.pratos.length}</div><div class="kpi-sub">No cardápio</div></div>
+    <div class="kpi-card"><div class="kpi-label">Clientes</div><div class="kpi-val">${DB.clientes.length}</div><div class="kpi-sub">Registados</div></div>
+  `;
+
+  const proxEl = document.getElementById('proximos-eventos-list');
+  if (proximos.length) {
+    proxEl.innerHTML = proximos.map(o => {
+      const cli = getCliente(o.clienteId);
+      return `<div style="padding:12px 20px;border-bottom:1px solid var(--cinza);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-weight:600;font-size:14px">${cli ? cli.nome : '—'}</div>
+          <div style="color:var(--cinza-escuro);font-size:12px">📅 ${fmtData(o.data)} ${o.hora ? '· '+o.hora : ''} · ${o.pessoas} pessoas</div>
+        </div>
+        <div>${getStatusBadge(o.status)}</div>
+      </div>`;
+    }).join('');
+  } else {
+    proxEl.innerHTML = '<div class="empty-state" style="padding:24px"><p>Nenhum evento próximo</p></div>';
+  }
+
+  const recentes = [...DB.orcamentos].sort((a,b) => b.criadoEm.localeCompare(a.criadoEm)).slice(0,5);
+  const recEl = document.getElementById('orcamentos-recentes');
+  if (recentes.length) {
+    recEl.innerHTML = recentes.map(o => {
+      const cli = getCliente(o.clienteId);
+      return `<div style="padding:11px 20px;border-bottom:1px solid var(--cinza);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-weight:600;font-size:14px">#${String(o.num).padStart(3,'0')} · ${cli ? cli.nome : '—'}</div>
+          <div style="color:var(--cinza-escuro);font-size:12px">${fmtData(o.data)}</div>
+        </div>
+        <div style="font-weight:700;color:var(--verde)">${fmtBRL(calcTotalOrc(o))}</div>
+      </div>`;
+    }).join('');
+  } else {
+    recEl.innerHTML = '<div class="empty-state" style="padding:24px"><p>Nenhum orçamento ainda</p></div>';
+  }
+
+  // Pratos mais usados
+  const pratoCount = {};
+  DB.orcamentos.forEach(o => {
+    (o.itens || []).forEach(it => {
+      pratoCount[it.pratoId] = (pratoCount[it.pratoId] || 0) + 1;
+    });
+  });
+  const topPratos = Object.entries(pratoCount).sort((a,b) => b[1]-a[1]).slice(0,5);
+  const ppEl = document.getElementById('pratos-populares');
+  if (topPratos.length) {
+    ppEl.innerHTML = `<div style="display:flex;gap:16px;flex-wrap:wrap">${topPratos.map(([pid, cnt]) => {
+      const p = getPrato(pid);
+      return p ? `<div style="background:var(--cinza);padding:10px 18px;border-radius:8px;font-size:13.5px">
+        <strong>${p.nome}</strong> <span style="color:var(--cinza-escuro)">(${cnt} evento${cnt>1?'s':''})</span>
+      </div>` : '';
+    }).join('')}</div>`;
+  } else {
+    ppEl.innerHTML = '<p style="color:var(--cinza-escuro)">Adicione orçamentos para ver os pratos mais populares.</p>';
+  }
+}
+
+// =============================================
+//  ORÇAMENTOS — LISTA
+// =============================================
+let orcFilter = 'todos';
+function filterOrc(f) {
+  orcFilter = f;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderOrcamentos();
+}
+function renderOrcamentos() {
+  const search = (document.getElementById('orc-search')?.value || '').toLowerCase();
+  let list = [...DB.orcamentos];
+  if (orcFilter !== 'todos') list = list.filter(o => o.status === orcFilter);
+  if (search) {
+    list = list.filter(o => {
+      const cli = getCliente(o.clienteId);
+      return (cli && cli.nome.toLowerCase().includes(search)) ||
+        String(o.num).includes(search) ||
+        (o.local || '').toLowerCase().includes(search);
+    });
+  }
+  list.sort((a,b) => b.criadoEm.localeCompare(a.criadoEm));
+  const tbody = document.getElementById('orc-tbody');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">📋</div><p>Nenhum orçamento encontrado</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(o => {
+    const cli = getCliente(o.clienteId);
+    const total = calcTotalOrc(o);
+    return `<tr>
+      <td><strong>#${String(o.num).padStart(3,'0')}</strong></td>
+      <td>${cli ? cli.nome : '<em>Sem cliente</em>'}</td>
+      <td>${fmtData(o.data)}${o.hora ? ' '+o.hora : ''}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.local||'—'}</td>
+      <td style="text-align:center">${o.pessoas||'—'}</td>
+      <td class="price-tag">${fmtBRL(total)}</td>
+      <td>${getStatusBadge(o.status)}</td>
+      <td><div class="actions-cell">
+        <button class="btn btn-outline btn-xs" onclick="verOrcamento('${o.id}')">👁️</button>
+        <button class="btn btn-outline btn-xs" onclick="editarOrcamento('${o.id}')">✏️</button>
+        <button class="btn btn-danger btn-xs" onclick="deletarOrcamento('${o.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// =============================================
+//  ORÇAMENTOS — FORMULÁRIO
+// =============================================
+let orcItens = [];
+
+function initNovoOrcamento(orcId) {
+  orcItens = [];
+  document.getElementById('orc-id-edit').value = '';
+  document.getElementById('form-orc-titulo').textContent = '📋 Novo Orçamento';
+  document.getElementById('orc-cliente').value = '';
+  document.getElementById('orc-status').value = 'pendente';
+  document.getElementById('orc-data').value = '';
+  document.getElementById('orc-hora').value = '19:00';
+  document.getElementById('orc-pessoas').value = '30';
+  document.getElementById('orc-local').value = '';
+  document.getElementById('orc-obs').value = '';
+  document.getElementById('orc-desconto').value = '0';
+  document.getElementById('orc-taxa').value = '0';
+  document.getElementById('btn-imprimir').style.display = 'none';
+  preencherSelectClientes();
+  preencherSelectPratos();
+  renderItensOrc();
+  calcTotaisOrc();
+}
+
+function preencherSelectClientes() {
+  const sel = document.getElementById('orc-cliente');
+  sel.innerHTML = '<option value="">— Selecione o cliente —</option>' +
+    DB.clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+}
+
+function preencherSelectPratos() {
+  const sel = document.getElementById('add-prato-select');
+  sel.innerHTML = '<option value="">— Selecione um prato para adicionar —</option>' +
+    DB.pratos.map(p => `<option value="${p.id}">[${p.cat}] ${p.nome} — ${fmtBRL(p.preco)}/${p.unidade}</option>`).join('');
+}
+
+function addItemOrc() {
+  const sel = document.getElementById('add-prato-select');
+  const pid = sel.value;
+  if (!pid) return alert('Selecione um prato.');
+  if (orcItens.find(i => i.pratoId === pid)) { alert('Este prato já foi adicionado.'); return; }
+  const prato = getPrato(pid);
+  if (!prato) return;
+  const pessoas = parseInt(document.getElementById('orc-pessoas').value) || 1;
+  const qtdSugerida = prato.rendimento > 1 ? Math.ceil(pessoas / prato.rendimento) : pessoas;
+  orcItens.push({ pratoId: pid, qtd: qtdSugerida, precoUnit: prato.preco });
+  sel.value = '';
+  renderItensOrc();
+  calcTotaisOrc();
+}
+
+function renderItensOrc() {
+  const tbody = document.getElementById('itens-orc-tbody');
+  if (!orcItens.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--cinza-escuro)">Adicione pratos ao orçamento acima ↑</td></tr>';
+    return;
+  }
+  tbody.innerHTML = orcItens.map((it, i) => {
+    const p = getPrato(it.pratoId);
+    if (!p) return '';
+    const sub = it.qtd * it.precoUnit;
+    const pessoas = parseInt(document.getElementById('orc-pessoas').value) || 1;
+    const qtdTotal = p.rendimento > 1 ? it.qtd * p.rendimento : it.qtd;
+    return `<tr class="item-row">
+      <td><strong>${p.nome}</strong></td>
+      <td>${getCatBadge(p.cat)}</td>
+      <td style="text-align:center">
+        <input type="number" min="1" value="${it.qtd}" style="width:75px;text-align:center"
+          onchange="updateItemQtd(${i}, this.value)">
+        <div style="font-size:11px;color:var(--cinza-escuro)">${p.unidade}</div>
+      </td>
+      <td style="text-align:center">
+        <strong>${qtdTotal}</strong>
+        <div style="font-size:11px;color:var(--cinza-escuro)">${p.rendimento>1 ? `(${p.rendimento} pess/unid)` : 'unid'}</div>
+      </td>
+      <td>
+        <input type="number" min="0" step="0.01" value="${it.precoUnit.toFixed(2)}" style="width:90px"
+          onchange="updateItemPreco(${i}, this.value)">
+      </td>
+      <td class="item-total">${fmtBRL(sub)}</td>
+      <td><button class="btn btn-danger btn-xs" onclick="removerItemOrc(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateItemQtd(i, v) {
+  orcItens[i].qtd = parseInt(v) || 1;
+  renderItensOrc();
+  calcTotaisOrc();
+}
+function updateItemPreco(i, v) {
+  orcItens[i].precoUnit = parseFloat(v) || 0;
+  renderItensOrc();
+  calcTotaisOrc();
+}
+function removerItemOrc(i) {
+  orcItens.splice(i, 1);
+  renderItensOrc();
+  calcTotaisOrc();
+}
+
+function calcTotaisOrc() {
+  const sub = orcItens.reduce((a, it) => a + it.qtd * it.precoUnit, 0);
+  const desc = parseFloat(document.getElementById('orc-desconto')?.value) || 0;
+  const taxa = parseFloat(document.getElementById('orc-taxa')?.value) || 0;
+  const total = sub - desc + taxa;
+  const el = document.getElementById('orc-total-display');
+  if (el) el.value = fmtBRL(total);
+}
+
+function salvarOrcamento() {
+  const clienteId = document.getElementById('orc-cliente').value;
+  const data = document.getElementById('orc-data').value;
+  if (!clienteId) { alert('Selecione um cliente.'); return; }
+  if (!data) { alert('Informe a data do evento.'); return; }
+  const idEdit = document.getElementById('orc-id-edit').value;
+  const payload = {
+    clienteId,
+    data,
+    hora: document.getElementById('orc-hora').value,
+    pessoas: parseInt(document.getElementById('orc-pessoas').value) || 1,
+    local: document.getElementById('orc-local').value,
+    obs: document.getElementById('orc-obs').value,
+    status: document.getElementById('orc-status').value,
+    desconto: parseFloat(document.getElementById('orc-desconto').value) || 0,
+    taxa: parseFloat(document.getElementById('orc-taxa').value) || 0,
+    itens: orcItens.map(it => ({ ...it })),
+  };
+  if (idEdit) {
+    const idx = DB.orcamentos.findIndex(o => o.id === idEdit);
+    if (idx >= 0) { DB.orcamentos[idx] = { ...DB.orcamentos[idx], ...payload }; }
+  } else {
+    DB.orcamentos.push({ id: uid(), num: DB.nextOrcNum++, criadoEm: new Date().toISOString(), ...payload });
+  }
+  saveDB();
+  alert('✅ Orçamento guardado com sucesso!');
+  goTo('orcamentos');
+}
+
+function editarOrcamento(id) {
+  const orc = DB.orcamentos.find(o => o.id === id);
+  if (!orc) return;
+  preencherSelectClientes();
+  preencherSelectPratos();
+  document.getElementById('section-orcamentos').classList.remove('active');
+  document.getElementById('section-novo-orcamento').classList.add('active');
+  document.getElementById('page-title').textContent = 'Editar Orçamento';
+  document.getElementById('form-orc-titulo').textContent = `✏️ Editar Orçamento #${String(orc.num).padStart(3,'0')}`;
+  document.getElementById('orc-id-edit').value = id;
+  document.getElementById('orc-cliente').value = orc.clienteId;
+  document.getElementById('orc-status').value = orc.status;
+  document.getElementById('orc-data').value = orc.data;
+  document.getElementById('orc-hora').value = orc.hora || '19:00';
+  document.getElementById('orc-pessoas').value = orc.pessoas;
+  document.getElementById('orc-local').value = orc.local || '';
+  document.getElementById('orc-obs').value = orc.obs || '';
+  document.getElementById('orc-desconto').value = orc.desconto || 0;
+  document.getElementById('orc-taxa').value = orc.taxa || 0;
+  document.getElementById('btn-imprimir').style.display = 'inline-flex';
+  orcItens = (orc.itens || []).map(it => ({ ...it }));
+  renderItensOrc();
+  calcTotaisOrc();
+}
+
+function deletarOrcamento(id) {
+  const orc = DB.orcamentos.find(o => o.id === id);
+  if (!orc) return;
+  if (!confirm(`Eliminar orçamento #${String(orc.num).padStart(3,'0')}?\nEsta acção não pode ser desfeita.`)) return;
+  DB.orcamentos = DB.orcamentos.filter(o => o.id !== id);
+  saveDB();
+  renderOrcamentos();
+}
+
+// =============================================
+//  VER ORÇAMENTO
+// =============================================
+function verOrcamento(id) {
+  const orc = DB.orcamentos.find(o => o.id === id);
+  if (!orc) return;
+  const cli = getCliente(orc.clienteId);
+  const sub = (orc.itens||[]).reduce((a,it) => a + it.qtd * it.precoUnit, 0);
+  const total = calcTotalOrc(orc);
+  document.getElementById('ver-orc-titulo').textContent = `📋 Orçamento #${String(orc.num).padStart(3,'0')}`;
+  document.getElementById('ver-orc-edit-btn').onclick = () => { fecharModal('modal-ver-orc'); editarOrcamento(id); };
+  document.getElementById('ver-orc-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div><div style="font-size:12px;color:var(--cinza-escuro);font-weight:600">CLIENTE</div><div style="font-size:15px;font-weight:700">${cli ? cli.nome : '—'}</div><div style="font-size:13px;color:var(--cinza-escuro)">${cli ? (cli.tel||'') : ''}</div></div>
+      <div><div style="font-size:12px;color:var(--cinza-escuro);font-weight:600">EVENTO</div><div style="font-size:15px;font-weight:700">${fmtData(orc.data)}${orc.hora ? ' · '+orc.hora : ''}</div><div style="font-size:13px;color:var(--cinza-escuro)">${orc.local||'—'}</div></div>
+      <div><div style="font-size:12px;color:var(--cinza-escuro);font-weight:600">CONVIDADOS</div><div style="font-size:20px;font-weight:800;color:var(--verde)">${orc.pessoas}</div></div>
+      <div><div style="font-size:12px;color:var(--cinza-escuro);font-weight:600">STATUS</div>${getStatusBadge(orc.status)}</div>
+    </div>
+    <table style="margin-bottom:16px">
+      <thead><tr><th>Prato</th><th>Categoria</th><th>Qtd</th><th>Unid</th><th>Preço Unit.</th><th>Subtotal</th></tr></thead>
+      <tbody>
+        ${(orc.itens||[]).map(it => {
+          const p = getPrato(it.pratoId);
+          return `<tr><td>${p ? p.nome : '—'}</td><td>${p ? getCatBadge(p.cat) : ''}</td><td style="text-align:center">${it.qtd}</td><td>${p ? p.unidade : ''}</td><td>${fmtBRL(it.precoUnit)}</td><td class="price-tag">${fmtBRL(it.qtd*it.precoUnit)}</td></tr>`;
+        }).join('')}
+      </tbody>
+      <tfoot>
+        <tr style="background:var(--cinza)"><td colspan="5" style="text-align:right;padding:10px 14px;font-weight:600">Subtotal</td><td style="padding:10px 14px;font-weight:700">${fmtBRL(sub)}</td></tr>
+        ${orc.desconto ? `<tr><td colspan="5" style="text-align:right;padding:8px 14px;color:var(--perigo)">Desconto</td><td style="padding:8px 14px;color:var(--perigo)">- ${fmtBRL(orc.desconto)}</td></tr>` : ''}
+        ${orc.taxa ? `<tr><td colspan="5" style="text-align:right;padding:8px 14px">Taxa de Serviço</td><td style="padding:8px 14px">+ ${fmtBRL(orc.taxa)}</td></tr>` : ''}
+        <tr class="total-row"><td colspan="5" style="text-align:right;padding:14px">TOTAL</td><td style="padding:14px">${fmtBRL(total)}</td></tr>
+      </tfoot>
+    </table>
+    ${orc.obs ? `<div style="background:var(--cinza);padding:12px 16px;border-radius:8px;font-size:13px"><strong>Observações:</strong> ${orc.obs}</div>` : ''}
+  `;
+  abrirModal('modal-ver-orc');
+}
+
+let _imprimirOrcId = null;
+function imprimirDetalhes() { window.print(); }
+function imprimirOrcamento() { window.print(); }
+
+// =============================================
+//  CLIENTES
+// =============================================
+function renderClientes() {
+  const search = (document.getElementById('cli-search')?.value || '').toLowerCase();
+  let list = DB.clientes.filter(c =>
+    !search || c.nome.toLowerCase().includes(search) || (c.email||'').includes(search) || (c.tel||'').includes(search)
+  );
+  const tbody = document.getElementById('cli-tbody');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon">👥</div><p>Nenhum cliente encontrado</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(c => {
+    const nEvs = DB.orcamentos.filter(o => o.clienteId === c.id).length;
+    return `<tr>
+      <td><strong>${c.nome}</strong>${c.notas ? `<div style="font-size:11px;color:var(--cinza-escuro)">${c.notas.slice(0,50)}${c.notas.length>50?'...':''}</div>` : ''}</td>
+      <td>${c.tel||'—'}</td>
+      <td>${c.email||'—'}</td>
+      <td style="text-align:center"><span class="badge badge-azul">${nEvs}</span></td>
+      <td><div class="actions-cell">
+        <button class="btn btn-outline btn-xs" onclick="abrirModalCliente('${c.id}')">✏️ Editar</button>
+        <button class="btn btn-danger btn-xs" onclick="deletarCliente('${c.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function abrirModalCliente(id) {
+  const el = id ? DB.clientes.find(c => c.id === id) : null;
+  document.getElementById('modal-cliente-titulo').textContent = el ? '✏️ Editar Cliente' : '👤 Novo Cliente';
+  document.getElementById('cli-id-edit').value = id || '';
+  document.getElementById('cli-nome').value = el ? el.nome : '';
+  document.getElementById('cli-tel').value = el ? el.tel||'' : '';
+  document.getElementById('cli-email').value = el ? el.email||'' : '';
+  document.getElementById('cli-morada').value = el ? el.morada||'' : '';
+  document.getElementById('cli-notas').value = el ? el.notas||'' : '';
+  abrirModal('modal-cliente');
+}
+function salvarCliente() {
+  const nome = document.getElementById('cli-nome').value.trim();
+  if (!nome) { alert('Informe o nome do cliente.'); return; }
+  const id = document.getElementById('cli-id-edit').value;
+  const payload = {
+    nome, tel: document.getElementById('cli-tel').value,
+    email: document.getElementById('cli-email').value,
+    morada: document.getElementById('cli-morada').value,
+    notas: document.getElementById('cli-notas').value
+  };
+  if (id) {
+    const idx = DB.clientes.findIndex(c => c.id === id);
+    if (idx >= 0) DB.clientes[idx] = { ...DB.clientes[idx], ...payload };
+  } else {
+    DB.clientes.push({ id: uid(), ...payload });
+  }
+  saveDB();
+  fecharModal('modal-cliente');
+  renderClientes();
+}
+function deletarCliente(id) {
+  const c = DB.clientes.find(x => x.id === id);
+  if (!c) return;
+  if (DB.orcamentos.find(o => o.clienteId === id)) {
+    if (!confirm(`"${c.nome}" tem orçamentos associados. Eliminar mesmo assim?`)) return;
+  } else {
+    if (!confirm(`Eliminar cliente "${c.nome}"?`)) return;
+  }
+  DB.clientes = DB.clientes.filter(x => x.id !== id);
+  saveDB();
+  renderClientes();
+}
+
+// =============================================
+//  CARDÁPIO
+// =============================================
+function renderCardapio() {
+  const search = (document.getElementById('card-search')?.value || '').toLowerCase();
+  const cat = document.getElementById('card-cat-filter')?.value || '';
+  let list = DB.pratos.filter(p =>
+    (!search || p.nome.toLowerCase().includes(search) || (p.desc||'').toLowerCase().includes(search)) &&
+    (!cat || p.cat === cat)
+  );
+  const tbody = document.getElementById('card-tbody');
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">🍽️</div><p>Nenhum prato encontrado</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(p => `<tr>
+    <td><strong>${p.nome}</strong>${p.obs ? `<div style="font-size:11px;color:var(--aviso)">⚠️ ${p.obs}</div>` : ''}</td>
+    <td>${getCatBadge(p.cat)}</td>
+    <td>${p.unidade}${p.rendimento > 1 ? `<div style="font-size:11px;color:var(--cinza-escuro)">${p.rendimento} pess/unid</div>` : ''}</td>
+    <td class="price-tag">${fmtBRL(p.preco)}</td>
+    <td style="max-width:200px;font-size:12.5px;color:var(--cinza-escuro)">${p.desc||'—'}</td>
+    <td><div class="actions-cell">
+      <button class="btn btn-outline btn-xs" onclick="abrirModalPrato('${p.id}')">✏️</button>
+      <button class="btn btn-outline btn-xs" onclick="abrirModalFicha('${p.id}')">📄 Ficha</button>
+      <button class="btn btn-danger btn-xs" onclick="deletarPrato('${p.id}')">🗑️</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function abrirModalPrato(id) {
+  const p = id ? DB.pratos.find(x => x.id === id) : null;
+  document.getElementById('modal-prato-titulo').textContent = p ? '✏️ Editar Prato' : '🍽️ Novo Prato';
+  document.getElementById('prato-id-edit').value = id || '';
+  document.getElementById('prato-nome').value = p ? p.nome : '';
+  document.getElementById('prato-cat').value = p ? p.cat : 'Prato Principal';
+  document.getElementById('prato-unidade').value = p ? p.unidade : 'porção';
+  document.getElementById('prato-preco').value = p ? p.preco : '';
+  document.getElementById('prato-rendimento').value = p ? p.rendimento||1 : 1;
+  document.getElementById('prato-desc').value = p ? p.desc||'' : '';
+  document.getElementById('prato-obs').value = p ? p.obs||'' : '';
+  abrirModal('modal-prato');
+}
+function salvarPrato() {
+  const nome = document.getElementById('prato-nome').value.trim();
+  const preco = parseFloat(document.getElementById('prato-preco').value);
+  if (!nome) { alert('Informe o nome do prato.'); return; }
+  if (isNaN(preco) || preco < 0) { alert('Informe um preço válido.'); return; }
+  const id = document.getElementById('prato-id-edit').value;
+  const payload = {
+    nome, cat: document.getElementById('prato-cat').value,
+    unidade: document.getElementById('prato-unidade').value,
+    preco, rendimento: parseInt(document.getElementById('prato-rendimento').value) || 1,
+    desc: document.getElementById('prato-desc').value,
+    obs: document.getElementById('prato-obs').value
+  };
+  if (id) {
+    const idx = DB.pratos.findIndex(p => p.id === id);
+    if (idx >= 0) DB.pratos[idx] = { ...DB.pratos[idx], ...payload };
+  } else {
+    DB.pratos.push({ id: uid(), ficha: null, ...payload });
+  }
+  saveDB();
+  fecharModal('modal-prato');
+  renderCardapio();
+}
+function deletarPrato(id) {
+  const p = DB.pratos.find(x => x.id === id);
+  if (!p) return;
+  if (!confirm(`Eliminar o prato "${p.nome}"?`)) return;
+  DB.pratos = DB.pratos.filter(x => x.id !== id);
+  saveDB();
+  renderCardapio();
+}
+
+// =============================================
+//  FICHAS TÉCNICAS
+// =============================================
+let fichaCurIngredientes = [];
+
+function renderFichas() {
+  const search = (document.getElementById('fich-search')?.value || '').toLowerCase();
+  const cat = document.getElementById('fich-cat-filter')?.value || '';
+  let list = DB.pratos.filter(p =>
+    (!search || p.nome.toLowerCase().includes(search)) &&
+    (!cat || p.cat === cat)
+  );
+  const grid = document.getElementById('fichas-grid');
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="icon">📄</div><p>Nenhum prato encontrado</p></div>';
+    return;
+  }
+  grid.innerHTML = list.map(p => {
+    const f = p.ficha;
+    const temFicha = f && (f.preparo || (f.ingredientes && f.ingredientes.length));
+    return `<div class="panel" style="margin-bottom:0">
+      <div class="panel-header">
+        <div>
+          <div style="font-weight:700;font-size:15px">${p.nome}</div>
+          <div style="margin-top:4px">${getCatBadge(p.cat)}</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="abrirModalFicha('${p.id}')">
+          ${temFicha ? '✏️ Editar' : '➕ Criar'} Ficha
+        </button>
+      </div>
+      <div class="panel-body" style="padding:14px 20px">
+        ${temFicha ? `
+          ${f.rendimento ? `<div style="font-size:12.5px;color:var(--cinza-escuro);margin-bottom:6px">📦 Rendimento: <strong>${f.rendimento}</strong> ${f.tempo ? `· ⏱️ <strong>${f.tempo}</strong>` : ''}</div>` : ''}
+          ${f.ingredientes && f.ingredientes.length ? `
+            <details style="margin-bottom:8px"><summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--verde)">🧂 ${f.ingredientes.length} ingrediente${f.ingredientes.length>1?'s':''}</summary>
+            <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
+              ${f.ingredientes.map(ing => `<div style="font-size:12.5px;display:flex;gap:8px"><span>${ing.nome}</span><span style="color:var(--cinza-escuro)">${ing.qtd} ${ing.unidade}</span></div>`).join('')}
+            </div></details>
+          ` : ''}
+          ${f.preparo ? `<div style="font-size:12.5px;color:var(--cinza-escuro);line-height:1.6;max-height:80px;overflow:hidden;text-overflow:ellipsis">${f.preparo.slice(0,180)}${f.preparo.length>180?'...':''}</div>` : ''}
+        ` : `<div style="color:var(--cinza-escuro);font-size:13px;text-align:center;padding:12px 0">Sem ficha técnica criada</div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function abrirModalFicha(pratoId) {
+  const p = getPrato(pratoId);
+  if (!p) return;
+  document.getElementById('modal-ficha-titulo').textContent = `📄 Ficha Técnica — ${p.nome}`;
+  document.getElementById('ficha-prato-id').value = pratoId;
+  const f = p.ficha || {};
+  document.getElementById('ficha-rendimento').value = f.rendimento || '';
+  document.getElementById('ficha-tempo').value = f.tempo || '';
+  document.getElementById('ficha-preparo').value = f.preparo || '';
+  document.getElementById('ficha-dicas').value = f.dicas || '';
+  fichaCurIngredientes = (f.ingredientes || []).map(i => ({ ...i }));
+  renderIngredientes();
+  calcCustoFicha();
+  abrirModal('modal-ficha');
+}
+
+function renderIngredientes() {
+  const lista = document.getElementById('ingredientes-lista');
+  if (!fichaCurIngredientes.length) {
+    lista.innerHTML = '<div style="color:var(--cinza-escuro);font-size:13px;padding:8px 0">Nenhum ingrediente adicionado</div>';
+    return;
+  }
+  lista.innerHTML = fichaCurIngredientes.map((ing, i) => `
+    <div class="ingrediente-row">
+      <input type="text" value="${ing.nome||''}" placeholder="Ingrediente" onchange="fichaCurIngredientes[${i}].nome=this.value;calcCustoFicha()">
+      <input type="text" value="${ing.qtd||''}" placeholder="Qtd" onchange="fichaCurIngredientes[${i}].qtd=this.value;calcCustoFicha()">
+      <input type="text" value="${ing.unidade||''}" placeholder="Unid" onchange="fichaCurIngredientes[${i}].unidade=this.value">
+      <button class="btn btn-danger btn-xs" onclick="removerIngrediente(${i})">✕</button>
+    </div>`).join('');
+}
+
+function addIngrediente() {
+  fichaCurIngredientes.push({ nome: '', qtd: '', unidade: '' });
+  renderIngredientes();
+}
+function removerIngrediente(i) {
+  fichaCurIngredientes.splice(i, 1);
+  renderIngredientes();
+  calcCustoFicha();
+}
+function calcCustoFicha() {
+  // Placeholder — pode ser expandido com custo por ingrediente
+}
+
+function salvarFicha() {
+  const pratoId = document.getElementById('ficha-prato-id').value;
+  const idx = DB.pratos.findIndex(p => p.id === pratoId);
+  if (idx < 0) return;
+  // Capturar ingredientes actuais dos inputs antes de salvar
+  const rows = document.querySelectorAll('.ingrediente-row');
+  rows.forEach((row, i) => {
+    const inputs = row.querySelectorAll('input');
+    if (fichaCurIngredientes[i]) {
+      fichaCurIngredientes[i].nome = inputs[0].value;
+      fichaCurIngredientes[i].qtd = inputs[1].value;
+      fichaCurIngredientes[i].unidade = inputs[2].value;
+    }
+  });
+  DB.pratos[idx].ficha = {
+    rendimento: document.getElementById('ficha-rendimento').value,
+    tempo: document.getElementById('ficha-tempo').value,
+    preparo: document.getElementById('ficha-preparo').value,
+    dicas: document.getElementById('ficha-dicas').value,
+    ingredientes: fichaCurIngredientes.filter(i => i.nome)
+  };
+  saveDB();
+  fecharModal('modal-ficha');
+  renderFichas();
+  if (document.getElementById('section-cardapio').classList.contains('active')) renderCardapio();
+}
+
+// =============================================
+//  MODAIS
+// =============================================
+function abrirModal(id) { document.getElementById(id).classList.add('open'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// =============================================
+//  INIT
+// =============================================
+renderDashboard();
+</script>
+</body>
+</html>
