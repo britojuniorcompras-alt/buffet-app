@@ -171,7 +171,7 @@
   </div>
   <nav>
     <div class="nav-group-label">Principal</div>
-    <button class="active" onclick="nav('dashboard')"><span class="icon">📊</span> Dashboard</button>
+    <button class="active" onclick="nav('dashboard')"><span class="icon">🍊</span> Dashboard</button>
     <div class="nav-group-label">Eventos</div>
     <button onclick="nav('orcamentos')"><span class="icon">📋</span> Orçamentos</button>
     <button onclick="nav('novo-orc')"><span class="icon">➕</span> Novo Orçamento</button>
@@ -499,7 +499,7 @@ let _orcFormItens = [];
 let _cardCat = 'Todos', _fichaCat = 'Todos';
 
 // Utils
-const fmtEUR = v => '€ ' + Number(v||0).toFixed(2).replace('.', ',');
+const fmtEUR = v => 'R$ ' + Number(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 const fmtDate = d => d ? new Date(d+'T00:00:00').toLocaleDateString('pt-PT') : '—';
 
 function showLoader(v) { document.getElementById('loader').style.display = v ? 'flex' : 'none'; }
@@ -997,7 +997,7 @@ function renderCliTable() {
         <td>${c.morada||'—'}</td>
         <td>
           <button class="btn btn-outline btn-sm" onclick="editCli('${c.id}')">✏️ Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="delCli('${c.id}')">🗱</button>
+          <button class="btn btn-danger btn-sm" onclick="delCli('${c.id}')">🗑</button>
         </td>
       </tr>`).join('')}
     </tbody></table>`;
