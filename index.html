@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Buffet Português — Gestão de Eventos</title>
+<title>Buffet PortuguÃªs â GestÃ£o de Eventos</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root {
@@ -55,6 +55,8 @@
   .btn-outline { background: transparent; border: 1.5px solid var(--cinza-medio); color: var(--texto); }
   .btn-outline:hover { border-color: var(--verde); color: var(--verde); }
   .btn-danger { background: var(--perigo); color: #fff; }
+  .btn-success { background: var(--sucesso); color: #fff; }
+  .btn-aviso { background: var(--aviso); color: #fff; }
   .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 6px; }
   table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   th { background: var(--cinza); color: var(--cinza-escuro); font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 14px; text-align: left; }
@@ -73,7 +75,7 @@
   .form-group input, .form-group select, .form-group textarea { padding: 9px 12px; border: 1.5px solid var(--cinza-medio); border-radius: 8px; font-size: 13.5px; background: var(--branco); transition: border-color 0.15s; }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--verde); }
   .form-group textarea { resize: vertical; min-height: 80px; }
-  .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .form-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
   .orc-itens-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
   .orc-itens-table th { background: var(--cinza); padding: 8px 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--cinza-escuro); }
   .orc-itens-table td { padding: 8px 10px; border-bottom: 1px solid var(--cinza); }
@@ -112,122 +114,204 @@
   .prato-card .prato-desc { font-size: 12px; color: var(--cinza-escuro); }
   .prato-card .prato-actions { display: flex; gap: 8px; margin-top: 8px; }
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .modal { background: #fff; border-radius: 14px; padding: 28px 32px; max-width: 560px; width: 100%; box-shadow: var(--sombra-forte); }
+  .modal { background: #fff; border-radius: 14px; padding: 28px 32px; max-width: 560px; width: 100%; box-shadow: var(--sombra-forte); max-height: 90vh; overflow-y: auto; }
   .modal h3 { font-size: 17px; font-weight: 700; color: var(--verde); margin-bottom: 18px; }
   .detail-row { display: flex; gap: 8px; margin-bottom: 8px; font-size: 13.5px; }
   .detail-row strong { min-width: 130px; color: var(--cinza-escuro); }
+  /* Pricing panel */
+  .pricing-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .slider-group { margin-bottom: 20px; }
+  .slider-group label { font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .slider-group label span { color: var(--ouro); font-size: 15px; font-weight: 800; }
+  .slider-group input[type=range] { width: 100%; accent-color: var(--verde); cursor: pointer; }
+  .pricing-preview { background: var(--cinza); border-radius: 10px; padding: 16px 20px; }
+  .prev-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--cinza-medio); font-size: 13.5px; }
+  .prev-row:last-child { border-bottom: none; }
+  .prev-row.highlight { font-weight: 800; color: var(--verde); font-size: 16px; background: rgba(26,71,49,0.07); border-radius: 6px; padding: 10px 8px; margin: 6px -8px; }
+  .prev-row.aviso-row { color: var(--aviso); font-weight: 700; }
+  .share-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  /* MÃ£o de obra */
+  .mo-group { margin-bottom: 28px; }
+  .mo-group-title { font-size: 14px; font-weight: 700; color: var(--verde); padding: 10px 0 8px; border-bottom: 2px solid var(--ouro); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .mo-table input[type=number] { width: 100px; padding: 4px 8px; border: 1px solid var(--cinza-medio); border-radius: 6px; font-size: 13px; }
+  /* Print */
+  #print-area { display: none; }
+  @media print {
+    body > * { display: none !important; }
+    #print-area { display: block !important; font-family: 'Segoe UI', sans-serif; padding: 32px; color: #111; }
+    #print-area .ph { text-align: center; margin-bottom: 24px; border-bottom: 3px solid #1a4731; padding-bottom: 16px; }
+    #print-area .ph h1 { font-size: 22px; color: #1a4731; }
+    #print-area .ph p { font-size: 13px; color: #555; }
+    #print-area .p-title { font-size: 18px; font-weight: 800; color: #1a4731; margin: 18px 0 6px; }
+    #print-area .p-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin-bottom: 18px; font-size: 13px; }
+    #print-area .p-grid div strong { color: #555; font-size: 11px; text-transform: uppercase; display: block; }
+    #print-area table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+    #print-area th { background: #1a4731; color: #fff; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; }
+    #print-area td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
+    #print-area .p-pricing { background: #f5f5f0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    #print-area .p-pricing table { margin: 0; }
+    #print-area .p-pricing td { border: none; padding: 5px 10px; }
+    #print-area .p-total { text-align: right; font-size: 22px; font-weight: 900; color: #1a4731; margin-top: 8px; }
+    #print-area .p-sinal { color: #e67e22; font-weight: 700; font-size: 15px; }
+    #print-area .p-footer { margin-top: 32px; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #ddd; padding-top: 12px; }
+  }
 </style>
 </head>
 <body>
 
 <div id="loader" class="loader"><div class="spin"></div><p>A carregar dados...</p></div>
 <div id="toast" class="toast"></div>
+<div id="print-area"></div>
 
 <div id="sidebar">
   <div class="logo-area">
-    <div class="emoji">🍷</div>
-    <h1>Buffet Português</h1>
-    <p>Gestão de Eventos</p>
+    <div class="emoji">ð·</div>
+    <h1>Buffet PortuguÃªs</h1>
+    <p>GestÃ£o de Eventos</p>
   </div>
   <nav>
     <div class="nav-group-label">Principal</div>
-    <button class="active" onclick="nav('dashboard')"><span class="icon">🍊</span> Dashboard</button>
+    <button class="active" onclick="nav('dashboard')"><span class="icon">ð</span> Dashboard</button>
     <div class="nav-group-label">Eventos</div>
-    <button onclick="nav('orcamentos')"><span class="icon">📋</span> Orçamentos</button>
-    <button onclick="nav('novo-orc')"><span class="icon">➕</span> Novo Orçamento</button>
+    <button onclick="nav('orcamentos')"><span class="icon">ð</span> OrÃ§amentos</button>
+    <button onclick="nav('novo-orc')"><span class="icon">â</span> Novo OrÃ§amento</button>
     <div class="nav-group-label">Cadastros</div>
-    <button onclick="nav('clientes')"><span class="icon">👥</span> Clientes</button>
-    <button onclick="nav('cardapio')"><span class="icon">🍽️</span> Cardápio</button>
-    <button onclick="nav('fichas')"><span class="icon">📝</span> Fichas Técnicas</button>
+    <button onclick="nav('clientes')"><span class="icon">ð¥</span> Clientes</button>
+    <button onclick="nav('cardapio')"><span class="icon">ð½ï¸</span> CardÃ¡pio</button>
+    <button onclick="nav('fichas')"><span class="icon">ð</span> Fichas TÃ©cnicas</button>
+    <div class="nav-group-label">OperaÃ§Ãµes</div>
+    <button onclick="nav('mao-obra')"><span class="icon">ð·</span> MÃ£o de Obra</button>
   </nav>
-  <div class="sidebar-footer"><small>v2.0 · Supabase</small></div>
+  <div class="sidebar-footer"><small>v3.0 Â· Supabase</small></div>
 </div>
 
 <div id="main">
   <!-- DASHBOARD -->
   <div id="sec-dashboard" class="section active">
-    <div class="topbar"><div><h2>Dashboard</h2><div class="sub">Visão geral dos eventos e orçamentos</div></div></div>
+    <div class="topbar"><div><h2>Dashboard</h2><div class="sub">VisÃ£o geral dos eventos e orÃ§amentos</div></div></div>
     <div class="content">
       <div class="kpi-grid" id="kpis"></div>
       <div class="grid2">
         <div class="panel">
-          <div class="panel-header"><h3>📅 Próximos Eventos</h3><button class="btn btn-outline btn-sm" onclick="nav('orcamentos')">Ver todos</button></div>
+          <div class="panel-header"><h3>ð PrÃ³ximos Eventos</h3><button class="btn btn-outline btn-sm" onclick="nav('orcamentos')">Ver todos</button></div>
           <div class="panel-body" id="dash-eventos"></div>
         </div>
         <div class="panel">
-          <div class="panel-header"><h3>🪙 Orçamentos Recentes</h3></div>
+          <div class="panel-header"><h3>ðª OrÃ§amentos Recentes</h3></div>
           <div class="panel-body" id="dash-recentes"></div>
         </div>
       </div>
       <div class="panel">
-        <div class="panel-header"><h3>🍽️ Pratos Mais Usados</h3></div>
+        <div class="panel-header"><h3>ð½ï¸ Pratos Mais Usados</h3></div>
         <div class="panel-body" id="dash-pratos"></div>
       </div>
     </div>
   </div>
 
-  <!-- ORÇAMENTOS -->
+  <!-- ORÃAMENTOS -->
   <div id="sec-orcamentos" class="section">
     <div class="topbar">
-      <div><h2>Orçamentos</h2><div class="sub">Todos os eventos e propostas</div></div>
-      <div class="topbar-actions"><button class="btn btn-primary" onclick="nav('novo-orc')">➕ Novo Orçamento</button></div>
+      <div><h2>OrÃ§amentos</h2><div class="sub">Todos os eventos e propostas</div></div>
+      <div class="topbar-actions"><button class="btn btn-primary" onclick="nav('novo-orc')">â Novo OrÃ§amento</button></div>
     </div>
     <div class="content">
       <div class="panel">
         <div class="panel-header">
-          <h3>Lista de Orçamentos</h3>
-          <input class="search-bar" id="search-orc" placeholder="🔍 Pesquisar..." oninput="filterOrc()">
+          <h3>Lista de OrÃ§amentos</h3>
+          <input class="search-bar" id="search-orc" placeholder="ð Pesquisar..." oninput="filterOrc()">
         </div>
         <div id="tbl-orc-wrap"></div>
       </div>
     </div>
   </div>
 
-  <!-- NOVO ORÇAMENTO -->
+  <!-- NOVO ORÃAMENTO -->
   <div id="sec-novo-orc" class="section">
     <div class="topbar">
-      <div><h2 id="form-orc-title">Novo Orçamento</h2><div class="sub" id="form-orc-sub">Preencha os dados do evento</div></div>
+      <div><h2 id="form-orc-title">Novo OrÃ§amento</h2><div class="sub" id="form-orc-sub">Preencha os dados do evento</div></div>
     </div>
     <div class="content">
       <div class="panel">
         <div class="panel-header"><h3>Dados do Evento</h3></div>
         <div class="panel-body">
           <div class="form-grid">
-            <div class="form-group"><label>Cliente *</label><select id="orc-cliente"><option value="">— Selecione —</option></select></div>
-            <div class="form-group"><label>Nº Pessoas *</label><input type="number" id="orc-pessoas" min="1" value="10"></div>
+            <div class="form-group">
+              <label>Cliente *</label>
+              <input type="text" id="orc-cliente-nome" list="cli-datalist" placeholder="Digite ou selecione um cliente" autocomplete="off">
+              <datalist id="cli-datalist"></datalist>
+            </div>
+            <div class="form-group"><label>NÂº Pessoas *</label><input type="number" id="orc-pessoas" min="1" value="10" oninput="updatePricing()"></div>
             <div class="form-group"><label>Data do Evento *</label><input type="date" id="orc-data"></div>
             <div class="form-group"><label>Hora</label><input type="time" id="orc-hora"></div>
-            <div class="form-group span2"><label>Local do Evento</label><input type="text" id="orc-local" placeholder="Rua, nº, cidade"></div>
+            <div class="form-group span2"><label>Local do Evento</label><input type="text" id="orc-local" placeholder="Rua, nÂº, cidade"></div>
             <div class="form-group"><label>Status</label>
               <select id="orc-status"><option value="Pendente">Pendente</option><option value="Confirmado">Confirmado</option><option value="Cancelado">Cancelado</option></select>
             </div>
-            <div class="form-group"><label>Taxa de Serviço (€)</label><input type="number" id="orc-taxa" min="0" value="0" step="0.01"></div>
-            <div class="form-group span2"><label>Observações</label><textarea id="orc-obs" placeholder="Notas sobre o evento..."></textarea></div>
+            <div class="form-group"><label>Taxa de ServiÃ§o (â¬)</label><input type="number" id="orc-taxa" min="0" value="0" step="0.01" oninput="updatePricing()"></div>
+            <div class="form-group span2"><label>ObservaÃ§Ãµes</label><textarea id="orc-obs" placeholder="Notas sobre o evento..."></textarea></div>
           </div>
         </div>
       </div>
+
       <div class="panel">
-        <div class="panel-header"><h3>Itens do Cardápio</h3></div>
+        <div class="panel-header"><h3>Itens do CardÃ¡pio</h3></div>
         <div class="panel-body">
-          <div style="display:flex;gap:12px;margin-bottom:14px;align-items:flex-end">
-            <div class="form-group" style="flex:1"><label>Adicionar Prato</label><select id="orc-sel-prato"><option value="">— Selecione um prato —</option></select></div>
+          <div style="display:flex;gap:12px;margin-bottom:14px;align-items:flex-end;flex-wrap:wrap">
+            <div class="form-group" style="flex:1;min-width:200px"><label>Adicionar Prato</label>
+              <select id="orc-sel-prato"><option value="">â Selecione um prato â</option></select>
+            </div>
             <div class="form-group" style="width:100px"><label>Qtd</label><input type="number" id="orc-qtd" min="1" value="1"></div>
-            <button class="btn btn-ouro" onclick="addItemOrc()">➕ Adicionar</button>
+            <button class="btn btn-ouro" onclick="addItemOrc()">â Adicionar</button>
           </div>
           <table class="orc-itens-table">
-            <thead><tr><th>Prato</th><th>Categoria</th><th>Qtd</th><th>Preço Unit.</th><th>Subtotal</th><th></th></tr></thead>
+            <thead><tr><th>Prato</th><th>Categoria</th><th>Qtd</th><th>PreÃ§o Unit.</th><th>Subtotal</th><th></th></tr></thead>
             <tbody id="orc-itens-tbody"></tbody>
           </table>
-          <div id="orc-itens-empty" style="text-align:center;padding:20px;color:var(--cinza-escuro);font-size:13px;display:none">Nenhum item adicionado</div>
+          <div id="orc-itens-empty" style="text-align:center;padding:20px;color:var(--cinza-escuro);font-size:13px">Nenhum item adicionado</div>
         </div>
         <div class="total-bar">
-          <span class="total-label">TOTAL DO ORÇAMENTO</span>
-          <span class="total-val" id="orc-total-disp">€ 0,00</span>
+          <span class="total-label">SUBTOTAL DOS PRATOS</span>
+          <span class="total-val" id="orc-total-disp">â¬ 0,00</span>
         </div>
       </div>
+
+      <!-- PRECIFICAÃÃO -->
+      <div class="panel">
+        <div class="panel-header"><h3>ð° PrecificaÃ§Ã£o</h3></div>
+        <div class="panel-body">
+          <div class="pricing-layout">
+            <div>
+              <div class="slider-group">
+                <label>Quebras / Perdas <span id="sl-quebras-val">5</span>%</label>
+                <input type="range" id="sl-quebras" min="0" max="30" value="5" oninput="updatePricing()">
+              </div>
+              <div class="slider-group">
+                <label>Margem de Lucro <span id="sl-margem-val">30</span>%</label>
+                <input type="range" id="sl-margem" min="0" max="80" value="30" oninput="updatePricing()">
+              </div>
+              <div class="slider-group">
+                <label>Sinal de Entrada <span id="sl-sinal-val">30</span>%</label>
+                <input type="range" id="sl-sinal" min="0" max="100" value="30" oninput="updatePricing()">
+              </div>
+            </div>
+            <div class="pricing-preview">
+              <div class="prev-row"><span>Custo dos pratos</span><strong id="prev-custo">â¬ 0,00</strong></div>
+              <div class="prev-row"><span>+ Quebras/Perdas</span><strong id="prev-quebras">â¬ 0,00</strong></div>
+              <div class="prev-row"><span>= Custo total</span><strong id="prev-custo-total">â¬ 0,00</strong></div>
+              <div class="prev-row"><span>+ Margem de lucro</span><strong id="prev-margem">â¬ 0,00</strong></div>
+              <div class="prev-row"><span>+ Taxa de serviÃ§o</span><strong id="prev-taxa">â¬ 0,00</strong></div>
+              <div class="prev-row highlight"><span>ð¶ PreÃ§o Final</span><span id="prev-final">â¬ 0,00</span></div>
+              <div class="prev-row"><span>Valor por pessoa</span><strong id="prev-pax">â¬ 0,00</strong></div>
+              <div class="prev-row aviso-row"><span>ð¤ Sinal de entrada</span><strong id="prev-sinal">â¬ 0,00</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <input type="hidden" id="orc-edit-id">
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveOrc()">💾 Guardar Orçamento</button>
+        <button class="btn btn-primary" onclick="saveAndPDF()">ð¾ Salvar &amp; Gerar PDF</button>
+        <button class="btn btn-outline" onclick="saveOrc()">ð¾ Salvar</button>
         <button class="btn btn-outline" onclick="nav('orcamentos')">Cancelar</button>
       </div>
     </div>
@@ -237,26 +321,26 @@
   <div id="sec-clientes" class="section">
     <div class="topbar">
       <div><h2>Clientes</h2><div class="sub">Registo de clientes</div></div>
-      <div class="topbar-actions"><button class="btn btn-primary" onclick="openClienteModal()">➕ Novo Cliente</button></div>
+      <div class="topbar-actions"><button class="btn btn-primary" onclick="openClienteModal()">â Novo Cliente</button></div>
     </div>
     <div class="content">
       <div class="panel">
         <div class="panel-header">
           <h3>Lista de Clientes</h3>
-          <input class="search-bar" id="search-cli" placeholder="🔍 Pesquisar..." oninput="filterCli()">
+          <input class="search-bar" id="search-cli" placeholder="ð Pesquisar..." oninput="filterCli()">
         </div>
         <div id="tbl-cli-wrap"></div>
       </div>
     </div>
   </div>
 
-  <!-- CARDÁPIO -->
+  <!-- CARDÃPIO -->
   <div id="sec-cardapio" class="section">
     <div class="topbar">
-      <div><h2>Cardápio</h2><div class="sub">Pratos pré-cadastrados</div></div>
+      <div><h2>CardÃ¡pio</h2><div class="sub">Pratos prÃ©-cadastrados</div></div>
       <div class="topbar-actions">
-        <input class="search-bar" id="search-card" placeholder="🔍 Pesquisar..." oninput="filterCard()">
-        <button class="btn btn-primary" onclick="openPratoModal()">➕ Novo Prato</button>
+        <input class="search-bar" id="search-card" placeholder="ð Pesquisar..." oninput="filterCard()">
+        <button class="btn btn-primary" onclick="openPratoModal()">â Novo Prato</button>
       </div>
     </div>
     <div class="content">
@@ -265,14 +349,35 @@
     </div>
   </div>
 
-  <!-- FICHAS TÉCNICAS -->
+  <!-- FICHAS TÃCNICAS -->
   <div id="sec-fichas" class="section">
     <div class="topbar">
-      <div><h2>Fichas Técnicas</h2><div class="sub">Ingredientes e quantidades por prato</div></div>
+      <div><h2>Fichas TÃ©cnicas</h2><div class="sub">Ingredientes e quantidades por prato</div></div>
     </div>
     <div class="content">
       <div class="tag-group" id="ficha-cat-tags"></div>
       <div id="fichas-list"></div>
+    </div>
+  </div>
+
+  <!-- MÃO DE OBRA -->
+  <div id="sec-mao-obra" class="section">
+    <div class="topbar">
+      <div><h2>MÃ£o de Obra</h2><div class="sub">Profissionais por evento</div></div>
+      <div class="topbar-actions"><button class="btn btn-primary" onclick="openNovoProfModal()">â Novo Profissional</button></div>
+    </div>
+    <div class="content">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>ð· Profissionais</h3>
+          <button class="btn btn-success btn-sm" onclick="saveAllProfPrecos()">ð¾ Guardar todos os preÃ§os</button>
+        </div>
+        <div class="panel-body" id="mo-profissionais"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h3>ð HistÃ³rico de Pagamentos</h3></div>
+        <div class="panel-body" id="mo-pagamentos"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -285,12 +390,12 @@
       <div class="form-group span2"><label>Nome *</label><input type="text" id="cli-nome" placeholder="Nome completo"></div>
       <div class="form-group"><label>Email</label><input type="email" id="cli-email" placeholder="email@exemplo.com"></div>
       <div class="form-group"><label>Telefone</label><input type="tel" id="cli-tel" placeholder="+351 900 000 000"></div>
-      <div class="form-group span2"><label>Morada</label><input type="text" id="cli-morada" placeholder="Rua, nº, cidade"></div>
-      <div class="form-group span2"><label>Notas</label><textarea id="cli-notas" placeholder="Observações..."></textarea></div>
+      <div class="form-group span2"><label>Morada</label><input type="text" id="cli-morada" placeholder="Rua, nÂº, cidade"></div>
+      <div class="form-group span2"><label>Notas</label><textarea id="cli-notas" placeholder="ObservaÃ§Ãµes..."></textarea></div>
     </div>
     <input type="hidden" id="cli-edit-id">
     <div class="form-actions">
-      <button class="btn btn-primary" onclick="saveCli()">💾 Guardar</button>
+      <button class="btn btn-primary" onclick="saveCli()">ð¾ Guardar</button>
       <button class="btn btn-outline" onclick="closeModal('modal-cli')">Cancelar</button>
     </div>
   </div>
@@ -301,35 +406,83 @@
   <div class="modal">
     <h3 id="modal-prato-title">Novo Prato</h3>
     <div class="form-grid">
-      <div class="form-group span2"><label>Nome do Prato *</label><input type="text" id="prato-nome" placeholder="Ex: Bacalhau à Brás"></div>
+      <div class="form-group span2"><label>Nome do Prato *</label><input type="text" id="prato-nome" placeholder="Ex: Bacalhau Ã  BrÃ¡s"></div>
       <div class="form-group"><label>Categoria *</label>
         <select id="prato-cat">
+          <option value="Coquetel">Coquetel</option>
           <option value="Entrada">Entrada</option>
           <option value="Prato Principal">Prato Principal</option>
-          <option value="Acompanhamento">Acompanhamento</option>
           <option value="Sobremesa">Sobremesa</option>
-          <option value="Bebida">Bebida</option>
+          <option value="CafÃ©">CafÃ©</option>
+          <option value="Bebidas">Bebidas</option>
         </select>
       </div>
-      <div class="form-group"><label>Preço Unitário (€) *</label><input type="number" id="prato-preco" min="0" step="0.01" value="0"></div>
-      <div class="form-group span2"><label>Descrição</label><textarea id="prato-desc" placeholder="Descrição, unidade, alergénios..."></textarea></div>
+      <div class="form-group"><label>PreÃ§o UnitÃ¡rio (â¬) *</label><input type="number" id="prato-preco" min="0" step="0.01" value="0"></div>
+      <div class="form-group span2"><label>DescriÃ§Ã£o</label><textarea id="prato-desc" placeholder="DescriÃ§Ã£o, unidade, alergÃ©nios..."></textarea></div>
     </div>
     <input type="hidden" id="prato-edit-id">
     <div class="form-actions">
-      <button class="btn btn-primary" onclick="savePrato()">💾 Guardar</button>
+      <button class="btn btn-primary" onclick="savePrato()">ð¾ Guardar</button>
       <button class="btn btn-outline" onclick="closeModal('modal-prato')">Cancelar</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL VER ORÇAMENTO -->
+<!-- MODAL VER ORÃAMENTO -->
 <div id="modal-orc-view" style="display:none" class="modal-overlay">
-  <div class="modal" style="max-width:680px">
-    <h3 id="view-orc-title">Orçamento</h3>
+  <div class="modal" style="max-width:720px">
+    <h3 id="view-orc-title">OrÃ§amento</h3>
     <div id="view-orc-content"></div>
     <div class="form-actions" style="margin-top:20px">
-      <button class="btn btn-primary" id="view-orc-edit-btn">✏️ Editar</button>
+      <button class="btn btn-primary" id="view-orc-edit-btn">âï¸ Editar</button>
+      <button class="btn btn-success" id="view-orc-print-btn">ð¨ï¸ Imprimir / PDF</button>
+      <button class="btn btn-aviso" id="view-orc-wa-btn">ð± WhatsApp</button>
+      <button class="btn btn-outline" id="view-orc-email-btn">ð§ Email</button>
+      <button class="btn btn-outline" id="view-orc-copy-btn">ð Copiar</button>
       <button class="btn btn-outline" onclick="closeModal('modal-orc-view')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO PROFISSIONAL -->
+<div id="modal-novo-prof" style="display:none" class="modal-overlay">
+  <div class="modal">
+    <h3>Novo Profissional</h3>
+    <div class="form-grid">
+      <div class="form-group span2"><label>Nome *</label><input type="text" id="np-nome" placeholder="Ex: GarÃ§on Extra"></div>
+      <div class="form-group"><label>Grupo *</label>
+        <select id="np-grupo">
+          <option value="SalÃ£o">SalÃ£o</option>
+          <option value="Cozinha">Cozinha</option>
+          <option value="LogÃ­stica">LogÃ­stica</option>
+        </select>
+      </div>
+      <div class="form-group"><label>PreÃ§o por evento (â¬)</label><input type="number" id="np-preco" min="0" step="0.01" value="0"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveNovoprof()">ð¾ Guardar</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-novo-prof')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAGAMENTO -->
+<div id="modal-pag" style="display:none" class="modal-overlay">
+  <div class="modal" style="max-width:640px">
+    <h3 id="modal-pag-title">HistÃ³rico â Profissional</h3>
+    <div id="pag-historico"></div>
+    <hr style="margin:16px 0;border:none;border-top:1px solid var(--cinza)">
+    <h3 style="font-size:15px;margin-bottom:14px">Registar Pagamento</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Data do Pagamento</label><input type="date" id="pag-data"></div>
+      <div class="form-group"><label>Valor (â¬)</label><input type="number" id="pag-valor" min="0" step="0.01" value="0"></div>
+      <div class="form-group span2"><label>ReferÃªncia do Evento</label><input type="text" id="pag-evento" placeholder="Ex: Evento JoÃ£o Silva, 15/09"></div>
+      <div class="form-group span2"><label>Notas</label><textarea id="pag-notas" placeholder="ObservaÃ§Ãµes..."></textarea></div>
+    </div>
+    <input type="hidden" id="pag-prof-id">
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="savePag()">ð¾ Registar</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-pag')">Fechar</button>
     </div>
   </div>
 </div>
@@ -341,12 +494,13 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // State
 let _pratos = [], _clientes = [], _orcamentos = [], _orcItens = [];
-let _orcFormItens = []; // items being edited in form
+let _maoObraProfis = [], _maoObraPagamentos = [];
+let _orcFormItens = [];
 let _cardCat = 'Todos', _fichaCat = 'Todos';
 
 // Utils
-const fmtEUR = v => '€ ' + Number(v||0).toFixed(2).replace('.', ',');
-const fmtDate = d => d ? new Date(d+'T00:00:00').toLocaleDateString('pt-PT') : '—';
+const fmtEUR = v => 'â¬ ' + Number(v||0).toFixed(2).replace('.', ',');
+const fmtDate = d => d ? new Date(d+'T00:00:00').toLocaleDateString('pt-PT') : 'â';
 
 function showLoader(v) { document.getElementById('loader').style.display = v ? 'flex' : 'none'; }
 function toast(msg, err=false) {
@@ -363,7 +517,8 @@ function nav(sec) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-' + sec).classList.add('active');
-  const idx = ['dashboard','orcamentos','novo-orc','clientes','cardapio','fichas'].indexOf(sec);
+  const navSecs = ['dashboard','orcamentos','novo-orc','clientes','cardapio','fichas','mao-obra'];
+  const idx = navSecs.indexOf(sec);
   if (idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
   _curSection = sec;
   if (sec === 'dashboard') renderDash();
@@ -372,22 +527,27 @@ function nav(sec) {
   if (sec === 'cardapio') renderCard();
   if (sec === 'fichas') renderFichas();
   if (sec === 'novo-orc') initOrcForm();
+  if (sec === 'mao-obra') renderMaoObra();
 }
 
 // Load all data
 async function loadAll() {
   showLoader(true);
   try {
-    const [pr, cl, orc, oi] = await Promise.all([
+    const [pr, cl, orc, oi, mp, mpg] = await Promise.all([
       sb.from('pratos').select('*').order('categoria').order('nome'),
       sb.from('clientes').select('*').order('nome'),
       sb.from('orcamentos').select('*').order('created_at', {ascending:false}),
-      sb.from('orcamento_itens').select('*')
+      sb.from('orcamento_itens').select('*'),
+      sb.from('mao_obra_profissionais').select('*').order('grupo').order('nome'),
+      sb.from('mao_obra_pagamentos').select('*').order('data_pagamento', {ascending:false})
     ]);
     _pratos = pr.data || [];
     _clientes = cl.data || [];
     _orcamentos = orc.data || [];
     _orcItens = oi.data || [];
+    _maoObraProfis = mp.data || [];
+    _maoObraPagamentos = mpg.data || [];
   } catch(e) { toast('Erro ao carregar dados: '+e.message, true); }
   showLoader(false);
 }
@@ -396,37 +556,34 @@ async function loadAll() {
 function renderDash() {
   const mes = new Date().toISOString().slice(0,7);
   const orcMes = _orcamentos.filter(o => (o.created_at||'').startsWith(mes));
-  const receitaMes = orcMes.reduce((a,o) => a+Number(o.total||0), 0);
+  const receitaMes = orcMes.reduce((a,o) => a+Number(o.preco_final||o.total||0), 0);
   const pendentes = _orcamentos.filter(o => o.status==='Pendente').length;
   const confirmados = _orcamentos.filter(o => o.status==='Confirmado').length;
   document.getElementById('kpis').innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Total de Orçamentos</div><div class="kpi-val">${_orcamentos.length}</div><div class="kpi-sub">Desde o início</div></div>
-    <div class="kpi-card verde"><div class="kpi-label">Receita Estimada (Mês)</div><div class="kpi-val" style="font-size:22px">${fmtEUR(receitaMes)}</div><div class="kpi-sub">${mes}</div></div>
-    <div class="kpi-card aviso"><div class="kpi-label">Eventos Pendentes</div><div class="kpi-val">${pendentes}</div><div class="kpi-sub">Aguardam confirmação</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total de OrÃ§amentos</div><div class="kpi-val">${_orcamentos.length}</div><div class="kpi-sub">Desde o inÃ­cio</div></div>
+    <div class="kpi-card verde"><div class="kpi-label">Receita Estimada (MÃªs)</div><div class="kpi-val" style="font-size:22px">${fmtEUR(receitaMes)}</div><div class="kpi-sub">${mes}</div></div>
+    <div class="kpi-card aviso"><div class="kpi-label">Eventos Pendentes</div><div class="kpi-val">${pendentes}</div><div class="kpi-sub">Aguardam confirmaÃ§Ã£o</div></div>
     <div class="kpi-card perigo"><div class="kpi-label">Confirmados</div><div class="kpi-val">${confirmados}</div><div class="kpi-sub">Eventos agendados</div></div>
-    <div class="kpi-card"><div class="kpi-label">Pratos Cadastrados</div><div class="kpi-val">${_pratos.length}</div><div class="kpi-sub">No cardápio</div></div>
+    <div class="kpi-card"><div class="kpi-label">Pratos Cadastrados</div><div class="kpi-val">${_pratos.length}</div><div class="kpi-sub">No cardÃ¡pio</div></div>
     <div class="kpi-card verde"><div class="kpi-label">Clientes</div><div class="kpi-val">${_clientes.length}</div><div class="kpi-sub">Registados</div></div>`;
 
-  // Próximos eventos
   const hoje = new Date().toISOString().slice(0,10);
   const proximos = _orcamentos.filter(o => o.data_evento >= hoje).sort((a,b)=>a.data_evento>b.data_evento?1:-1).slice(0,5);
   document.getElementById('dash-eventos').innerHTML = proximos.length ? proximos.map(o=>`
     <div style="padding:10px 0;border-bottom:1px solid var(--cinza);display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-weight:700;font-size:14px">${o.cliente_nome||'—'}</div>
-      <div style="font-size:12px;color:var(--cinza-escuro)">📅 ${fmtDate(o.data_evento)} · ${o.hora_evento||''} · ${o.num_pessoas||0} pessoas</div></div>
+      <div><div style="font-weight:700;font-size:14px">${o.cliente_nome||'â'}</div>
+      <div style="font-size:12px;color:var(--cinza-escuro)">ð ${fmtDate(o.data_evento)} Â· ${o.hora_evento||''} Â· ${o.num_pessoas||0} pessoas</div></div>
       <span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span>
     </div>`).join('') : '<div style="color:var(--cinza-escuro);font-size:13px;padding:10px 0">Nenhum evento futuro</div>';
 
-  // Recentes
   const recentes = [..._orcamentos].slice(0,5);
   document.getElementById('dash-recentes').innerHTML = recentes.length ? recentes.map(o=>`
     <div style="padding:10px 0;border-bottom:1px solid var(--cinza);display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-weight:700;font-size:14px">#${String(o.numero).padStart(3,'0')} · ${o.cliente_nome||'—'}</div>
+      <div><div style="font-weight:700;font-size:14px">#${String(o.numero).padStart(3,'0')} Â· ${o.cliente_nome||'â'}</div>
       <div style="font-size:12px;color:var(--cinza-escuro)">${fmtDate(o.data_evento)}</div></div>
-      <span style="font-weight:700;color:var(--verde)">${fmtEUR(o.total)}</span>
-    </div>`).join('') : '<div style="color:var(--cinza-escuro);font-size:13px;padding:10px 0">Nenhum orçamento ainda</div>';
+      <span style="font-weight:700;color:var(--verde)">${fmtEUR(o.preco_final||o.total)}</span>
+    </div>`).join('') : '<div style="color:var(--cinza-escuro);font-size:13px;padding:10px 0">Nenhum orÃ§amento ainda</div>';
 
-  // Pratos mais usados
   const count = {};
   _orcItens.forEach(i => { count[i.nome_prato] = (count[i.nome_prato]||0)+1; });
   const top = Object.entries(count).sort((a,b)=>b[1]-a[1]).slice(0,8);
@@ -435,102 +592,231 @@ function renderDash() {
     : '<div style="color:var(--cinza-escuro);font-size:13px">Nenhum dado ainda</div>';
 }
 
-// ORÇAMENTOS
+// ORÃAMENTOS
 let _orcamentos_filtered = [];
-function renderOrc() {
-  _orcamentos_filtered = [..._orcamentos];
-  renderOrcTable();
-}
+function renderOrc() { _orcamentos_filtered = [..._orcamentos]; renderOrcTable(); }
 function filterOrc() {
   const q = document.getElementById('search-orc').value.toLowerCase();
   _orcamentos_filtered = _orcamentos.filter(o =>
-    (o.cliente_nome||'').toLowerCase().includes(q) ||
-    String(o.numero).includes(q) ||
-    (o.status||'').toLowerCase().includes(q)
+    (o.cliente_nome||'').toLowerCase().includes(q) || String(o.numero).includes(q) || (o.status||'').toLowerCase().includes(q)
   );
   renderOrcTable();
 }
 function renderOrcTable() {
   const wrap = document.getElementById('tbl-orc-wrap');
   if (!_orcamentos_filtered.length) {
-    wrap.innerHTML = '<div class="empty-state"><div class="big">📋</div><p>Nenhum orçamento encontrado</p></div>'; return;
+    wrap.innerHTML = '<div class="empty-state"><div class="big">ð</div><p>Nenhum orÃ§amento encontrado</p></div>'; return;
   }
   wrap.innerHTML = `<table>
-    <thead><tr><th>Nº</th><th>Cliente</th><th>Data Evento</th><th>Pessoas</th><th>Status</th><th>Total</th><th>Ações</th></tr></thead>
+    <thead><tr><th>NÂº</th><th>Cliente</th><th>Data Evento</th><th>Pessoas</th><th>Status</th><th>PreÃ§o Final</th><th>Margem</th><th>AÃ§Ãµes</th></tr></thead>
     <tbody>${_orcamentos_filtered.map(o=>`
       <tr>
         <td><strong>#${String(o.numero).padStart(3,'0')}</strong></td>
-        <td>${o.cliente_nome||'—'}</td>
+        <td>${o.cliente_nome||'â'}</td>
         <td>${fmtDate(o.data_evento)}</td>
         <td>${o.num_pessoas||0}</td>
         <td><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span></td>
-        <td><strong style="color:var(--verde)">${fmtEUR(o.total)}</strong></td>
+        <td><strong style="color:var(--verde)">${fmtEUR(o.preco_final||o.total)}</strong></td>
+        <td><span style="color:var(--ouro);font-size:12px">${o.margem_percent||0}%</span></td>
         <td>
-          <button class="btn btn-outline btn-sm" onclick="viewOrc('${o.id}')">👁 Ver</button>
-          <button class="btn btn-outline btn-sm" onclick="editOrc('${o.id}')">✏️ Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button>
+          <button class="btn btn-outline btn-sm" onclick="viewOrc('${o.id}')">ð Ver</button>
+          <button class="btn btn-outline btn-sm" onclick="editOrc('${o.id}')">âï¸ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">ð</button>
         </td>
       </tr>`).join('')}
     </tbody></table>`;
 }
 
 async function delOrc(id) {
-  if (!confirm('Eliminar este orçamento?')) return;
+  if (!confirm('Eliminar este orÃ§amento?')) return;
   showLoader(true);
   await sb.from('orcamento_itens').delete().eq('orcamento_id', id);
   await sb.from('orcamentos').delete().eq('id', id);
   _orcamentos = _orcamentos.filter(o=>o.id!==id);
   _orcItens = _orcItens.filter(i=>i.orcamento_id!==id);
-  showLoader(false);
-  toast('Orçamento eliminado');
-  renderOrc();
+  showLoader(false); toast('OrÃ§amento eliminado'); renderOrc();
 }
 
 function viewOrc(id) {
   const o = _orcamentos.find(x=>x.id===id);
   if (!o) return;
   const itens = _orcItens.filter(i=>i.orcamento_id===id);
-  document.getElementById('view-orc-title').textContent = `Orçamento #${String(o.numero).padStart(3,'0')} — ${o.cliente_nome||'—'}`;
+  const precoFinal = Number(o.preco_final||o.total||0);
+  const sinalEur = precoFinal * (Number(o.sinal_percent||0)/100);
+  const pax = o.num_pessoas > 0 ? precoFinal / o.num_pessoas : 0;
+
+  document.getElementById('view-orc-title').textContent = `OrÃ§amento #${String(o.numero).padStart(3,'0')} â ${o.cliente_nome||'â'}`;
   document.getElementById('view-orc-content').innerHTML = `
-    <div class="detail-row"><strong>Data do Evento</strong>${fmtDate(o.data_evento)} ${o.hora_evento||''}</div>
-    <div class="detail-row"><strong>Local</strong>${o.local_evento||'—'}</div>
-    <div class="detail-row"><strong>Nº Pessoas</strong>${o.num_pessoas||0}</div>
-    <div class="detail-row"><strong>Status</strong><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span></div>
-    <div class="detail-row"><strong>Observações</strong>${o.notas||'—'}</div>
-    <hr style="margin:14px 0;border:none;border-top:1px solid var(--cinza)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="detail-row"><strong>Data do Evento</strong>${fmtDate(o.data_evento)} ${o.hora_evento||''}</div>
+      <div class="detail-row"><strong>NÂº Pessoas</strong>${o.num_pessoas||0}</div>
+      <div class="detail-row"><strong>Local</strong>${o.local_evento||'â'}</div>
+      <div class="detail-row"><strong>Status</strong><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span></div>
+    </div>
+    ${o.notas ? `<div style="background:var(--cinza);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px">${o.notas}</div>` : ''}
     <table class="orc-itens-table">
       <thead><tr><th>Prato</th><th>Categoria</th><th>Qtd</th><th>Unit.</th><th>Subtotal</th></tr></thead>
-      <tbody>${itens.map(i=>`<tr><td>${i.nome_prato}</td><td>${i.categoria||'—'}</td><td>${i.quantidade}</td><td>${fmtEUR(i.preco_unit)}</td><td><strong>${fmtEUR(i.subtotal)}</strong></td></tr>`).join('')}</tbody>
+      <tbody>${itens.map(i=>`<tr><td>${i.nome_prato}</td><td>${i.categoria||'â'}</td><td>${i.quantidade}</td><td>${fmtEUR(i.preco_unit)}</td><td><strong>${fmtEUR(i.subtotal)}</strong></td></tr>`).join('')}</tbody>
     </table>
-    <div style="text-align:right;margin-top:12px;font-size:18px;font-weight:800;color:var(--verde)">Total: ${fmtEUR(o.total)}</div>`;
+    <div style="background:var(--cinza);border-radius:8px;padding:14px 18px;margin-top:14px;font-size:13.5px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div><div style="color:var(--cinza-escuro);font-size:11px;text-transform:uppercase;font-weight:700">Quebras</div><div style="font-weight:700">${o.quebras_percent||0}%</div></div>
+        <div><div style="color:var(--cinza-escuro);font-size:11px;text-transform:uppercase;font-weight:700">Margem</div><div style="font-weight:700">${o.margem_percent||0}%</div></div>
+        <div><div style="color:var(--cinza-escuro);font-size:11px;text-transform:uppercase;font-weight:700">Sinal</div><div style="font-weight:700">${o.sinal_percent||0}%</div></div>
+      </div>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:12px;color:var(--cinza-escuro)">Valor/pax</div><div style="font-weight:700;color:var(--verde)">${fmtEUR(pax)}</div></div>
+        <div style="text-align:right"><div style="font-size:12px;color:var(--aviso)">Sinal de entrada</div><div style="font-weight:700;color:var(--aviso)">${fmtEUR(sinalEur)}</div></div>
+        <div style="font-size:22px;font-weight:900;color:var(--verde)">TOTAL ${fmtEUR(precoFinal)}</div>
+      </div>
+    </div>`;
+
   document.getElementById('view-orc-edit-btn').onclick = () => { closeModal('modal-orc-view'); editOrc(id); };
+  document.getElementById('view-orc-print-btn').onclick = () => { closeModal('modal-orc-view'); printOrc(id); };
+  document.getElementById('view-orc-wa-btn').onclick = () => { closeModal('modal-orc-view'); shareWA(id); };
+  document.getElementById('view-orc-email-btn').onclick = () => { closeModal('modal-orc-view'); shareEmail(id); };
+  document.getElementById('view-orc-copy-btn').onclick = () => { closeModal('modal-orc-view'); copyOrcText(id); };
   openModal('modal-orc-view');
 }
 
-// FORM ORÇAMENTO
+// Print orÃ§amento
+function printOrc(id) {
+  const o = _orcamentos.find(x=>x.id===id);
+  if (!o) return;
+  const itens = _orcItens.filter(i=>i.orcamento_id===id);
+  const precoFinal = Number(o.preco_final||o.total||0);
+  const custoItens = itens.reduce((a,i)=>a+Number(i.subtotal),0);
+  const quebrasEur = custoItens * (Number(o.quebras_percent||0)/100);
+  const margemEur = (custoItens + quebrasEur) * (Number(o.margem_percent||0)/100);
+  const sinalEur = precoFinal * (Number(o.sinal_percent||0)/100);
+  const pax = o.num_pessoas > 0 ? precoFinal / o.num_pessoas : 0;
+
+  document.getElementById('print-area').innerHTML = `
+    <div class="ph">
+      <h1>ð· Buffet PortuguÃªs â GestÃ£o de Eventos</h1>
+      <p>OrÃ§amento #${String(o.numero).padStart(3,'0')} Â· Emitido em ${new Date().toLocaleDateString('pt-PT')}</p>
+    </div>
+    <div class="p-title">Cliente: ${o.cliente_nome||'â'}</div>
+    <div class="p-grid">
+      <div><strong>Data do Evento</strong>${fmtDate(o.data_evento)} ${o.hora_evento||''}</div>
+      <div><strong>NÂº de Pessoas</strong>${o.num_pessoas||0}</div>
+      <div><strong>Local</strong>${o.local_evento||'â'}</div>
+      <div><strong>Status</strong>${o.status||'â'}</div>
+      ${o.notas ? `<div style="grid-column:span 2"><strong>ObservaÃ§Ãµes</strong>${o.notas}</div>` : ''}
+    </div>
+    <div class="p-title">Itens do CardÃ¡pio</div>
+    <table>
+      <thead><tr><th>Prato</th><th>Categoria</th><th>Qtd</th><th>PreÃ§o Unit.</th><th>Subtotal</th></tr></thead>
+      <tbody>${itens.map(i=>`<tr><td>${i.nome_prato}</td><td>${i.categoria||'â'}</td><td>${i.quantidade}</td><td>${fmtEUR(i.preco_unit)}</td><td><strong>${fmtEUR(i.subtotal)}</strong></td></tr>`).join('')}</tbody>
+    </table>
+    <div class="p-pricing">
+      <div class="p-title" style="margin-top:0">PrecificaÃ§Ã£o</div>
+      <table>
+        <tr><td>Custo dos pratos</td><td style="text-align:right">${fmtEUR(custoItens)}</td></tr>
+        <tr><td>Quebras/Perdas (${o.quebras_percent||0}%)</td><td style="text-align:right">${fmtEUR(quebrasEur)}</td></tr>
+        <tr><td>Margem de Lucro (${o.margem_percent||0}%)</td><td style="text-align:right">${fmtEUR(margemEur)}</td></tr>
+      </table>
+      <div class="p-total">PREÃO FINAL: ${fmtEUR(precoFinal)}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px">
+        <span>Valor por pessoa: <strong>${fmtEUR(pax)}</strong></span>
+        <span class="p-sinal">Sinal de entrada (${o.sinal_percent||0}%): <strong>${fmtEUR(sinalEur)}</strong></span>
+      </div>
+    </div>
+    <div class="p-footer">Buffet PortuguÃªs Â· GestÃ£o de Eventos v3.0 Â· ${new Date().toLocaleDateString('pt-PT')}</div>`;
+  setTimeout(() => window.print(), 100);
+}
+
+// Share functions
+function buildOrcText(id) {
+  const o = _orcamentos.find(x=>x.id===id);
+  if (!o) return '';
+  const itens = _orcItens.filter(i=>i.orcamento_id===id);
+  const precoFinal = Number(o.preco_final||o.total||0);
+  const sinalEur = precoFinal * (Number(o.sinal_percent||0)/100);
+  const pax = o.num_pessoas > 0 ? precoFinal / o.num_pessoas : 0;
+  let txt = `*OrÃ§amento #${String(o.numero).padStart(3,'0')} â Buffet PortuguÃªs*\n`;
+  txt += `Cliente: ${o.cliente_nome||'â'}\n`;
+  txt += `Data: ${fmtDate(o.data_evento)} ${o.hora_evento||''}\n`;
+  txt += `Local: ${o.local_evento||'â'}\n`;
+  txt += `Pessoas: ${o.num_pessoas||0}\n\n`;
+  txt += `*Itens:*\n`;
+  itens.forEach(i => { txt += `â¢ ${i.nome_prato} x${i.quantidade} â ${fmtEUR(i.subtotal)}\n`; });
+  txt += `\n*PreÃ§o Final: ${fmtEUR(precoFinal)}*\n`;
+  txt += `Valor/pax: ${fmtEUR(pax)}\n`;
+  txt += `Sinal (${o.sinal_percent||0}%): ${fmtEUR(sinalEur)}\n`;
+  return txt;
+}
+function shareWA(id) {
+  const txt = buildOrcText(id);
+  window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+}
+function shareEmail(id) {
+  const o = _orcamentos.find(x=>x.id===id);
+  const txt = buildOrcText(id);
+  const subj = `OrÃ§amento #${String(o.numero).padStart(3,'0')} â Buffet PortuguÃªs`;
+  window.open(`mailto:?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(txt)}`, '_blank');
+}
+function copyOrcText(id) {
+  const txt = buildOrcText(id);
+  navigator.clipboard.writeText(txt).then(() => toast('Texto copiado!')).catch(() => toast('Erro ao copiar', true));
+}
+
+// FORM ORÃAMENTO
 function initOrcForm(orc=null) {
   document.getElementById('orc-edit-id').value = orc ? orc.id : '';
-  document.getElementById('form-orc-title').textContent = orc ? 'Editar Orçamento' : 'Novo Orçamento';
+  document.getElementById('form-orc-title').textContent = orc ? 'Editar OrÃ§amento' : 'Novo OrÃ§amento';
   document.getElementById('form-orc-sub').textContent = orc ? `#${String(orc.numero).padStart(3,'0')}` : 'Preencha os dados do evento';
+  document.getElementById('orc-cliente-nome').value = orc ? orc.cliente_nome||'' : '';
   document.getElementById('orc-data').value = orc ? orc.data_evento||'' : '';
   document.getElementById('orc-hora').value = orc ? orc.hora_evento||'' : '';
   document.getElementById('orc-local').value = orc ? orc.local_evento||'' : '';
   document.getElementById('orc-pessoas').value = orc ? orc.num_pessoas||10 : 10;
-  document.getElementById('orc-taxa').value = orc ? (Number(orc.total) - (_orcItens.filter(i=>i.orcamento_id===orc.id).reduce((a,i)=>a+Number(i.subtotal),0))).toFixed(2) : 0;
+  document.getElementById('orc-taxa').value = 0;
   document.getElementById('orc-status').value = orc ? orc.status||'Pendente' : 'Pendente';
   document.getElementById('orc-obs').value = orc ? orc.notas||'' : '';
 
-  // populate cliente select
-  const sel = document.getElementById('orc-cliente');
-  sel.innerHTML = '<option value="">— Selecione um cliente —</option>' +
-    _clientes.map(c=>`<option value="${c.id}" ${orc&&orc.cliente_id===c.id?'selected':''}>${c.nome}</option>`).join('');
+  // Set sliders from saved values
+  document.getElementById('sl-quebras').value = orc ? (orc.quebras_percent||5) : 5;
+  document.getElementById('sl-margem').value = orc ? (orc.margem_percent||30) : 30;
+  document.getElementById('sl-sinal').value = orc ? (orc.sinal_percent||30) : 30;
 
-  // populate prato select
+  // Populate datalist for client autocomplete
+  const dl = document.getElementById('cli-datalist');
+  dl.innerHTML = _clientes.map(c=>`<option value="${c.nome}">`).join('');
+
+  // populate prato select with optgroups
+  const cats = ['Coquetel','Entrada','Prato Principal','Sobremesa','CafÃ©','Bebidas'];
   const sp = document.getElementById('orc-sel-prato');
-  sp.innerHTML = '<option value="">— Selecione um prato —</option>' +
-    _pratos.map(p=>`<option value="${p.id}">[${p.categoria}] ${p.nome} — ${fmtEUR(p.preco_unit)}</option>`).join('');
+  sp.innerHTML = '<option value="">â Selecione um prato â</option>';
+  cats.forEach(cat => {
+    const catPratos = _pratos.filter(p=>p.categoria===cat);
+    if (catPratos.length) {
+      const og = document.createElement('optgroup');
+      og.label = cat;
+      catPratos.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.nome} â ${fmtEUR(p.preco_unit)}`;
+        og.appendChild(opt);
+      });
+      sp.appendChild(og);
+    }
+  });
+  // Also add pratos with other categories
+  const knownCats = new Set(cats);
+  const otherPratos = _pratos.filter(p=>!knownCats.has(p.categoria));
+  if (otherPratos.length) {
+    const og = document.createElement('optgroup');
+    og.label = 'Outros';
+    otherPratos.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `[${p.categoria}] ${p.nome} â ${fmtEUR(p.preco_unit)}`;
+      og.appendChild(opt);
+    });
+    sp.appendChild(og);
+  }
 
-  // itens
   if (orc) {
     _orcFormItens = _orcItens.filter(i=>i.orcamento_id===orc.id).map(i=>({
       pratoId: i.prato_id, nome: i.nome_prato, cat: i.categoria||'', qtd: i.quantidade, preco: Number(i.preco_unit), sub: Number(i.subtotal)
@@ -539,6 +825,7 @@ function initOrcForm(orc=null) {
     _orcFormItens = [];
   }
   renderOrcItens();
+  updatePricing();
 }
 
 function addItemOrc() {
@@ -551,15 +838,18 @@ function addItemOrc() {
   const existing = _orcFormItens.find(i=>i.pratoId===pratoId);
   if (existing) { existing.qtd += qtd; existing.sub = existing.qtd * existing.preco; }
   else _orcFormItens.push({ pratoId: prato.id, nome: prato.nome, cat: prato.categoria, qtd, preco: Number(prato.preco_unit), sub: qtd * Number(prato.preco_unit) });
-  renderOrcItens();
+  renderOrcItens(); updatePricing();
 }
 
-function removeItemOrc(idx) { _orcFormItens.splice(idx, 1); renderOrcItens(); }
+function removeItemOrc(idx) { _orcFormItens.splice(idx, 1); renderOrcItens(); updatePricing(); }
 
 function renderOrcItens() {
   const tbody = document.getElementById('orc-itens-tbody');
   const empty = document.getElementById('orc-itens-empty');
-  if (!_orcFormItens.length) { tbody.innerHTML=''; empty.style.display='block'; document.getElementById('orc-total-disp').textContent='€ 0,00'; return; }
+  if (!_orcFormItens.length) {
+    tbody.innerHTML=''; empty.style.display='block';
+    document.getElementById('orc-total-disp').textContent='â¬ 0,00'; return;
+  }
   empty.style.display='none';
   tbody.innerHTML = _orcFormItens.map((it,i)=>`
     <tr>
@@ -568,57 +858,92 @@ function renderOrcItens() {
       <td><input type="number" min="1" value="${it.qtd}" onchange="updateQtd(${i}, this.value)"></td>
       <td>${fmtEUR(it.preco)}</td>
       <td><strong>${fmtEUR(it.sub)}</strong></td>
-      <td><button class="btn btn-danger btn-sm" onclick="removeItemOrc(${i})">✕</button></td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeItemOrc(${i})">â</button></td>
     </tr>`).join('');
   const subTotal = _orcFormItens.reduce((a,i)=>a+i.sub, 0);
-  const taxa = parseFloat(document.getElementById('orc-taxa').value)||0;
-  document.getElementById('orc-total-disp').textContent = fmtEUR(subTotal + taxa);
+  document.getElementById('orc-total-disp').textContent = fmtEUR(subTotal);
 }
 
 function updateQtd(idx, val) {
   _orcFormItens[idx].qtd = parseInt(val)||1;
   _orcFormItens[idx].sub = _orcFormItens[idx].qtd * _orcFormItens[idx].preco;
-  renderOrcItens();
+  renderOrcItens(); updatePricing();
 }
 
-async function saveOrc() {
-  const cliId = document.getElementById('orc-cliente').value;
-  const data = document.getElementById('orc-data').value;
-  if (!cliId) { toast('Selecione um cliente', true); return; }
-  if (!data) { toast('Informe a data do evento', true); return; }
-  const cliNome = _clientes.find(c=>c.id===cliId)?.nome||'';
-  const subTotal = _orcFormItens.reduce((a,i)=>a+i.sub, 0);
+function updatePricing() {
+  const quebrasP = parseFloat(document.getElementById('sl-quebras').value)||0;
+  const margemP = parseFloat(document.getElementById('sl-margem').value)||0;
+  const sinalP = parseFloat(document.getElementById('sl-sinal').value)||0;
+  document.getElementById('sl-quebras-val').textContent = quebrasP;
+  document.getElementById('sl-margem-val').textContent = margemP;
+  document.getElementById('sl-sinal-val').textContent = sinalP;
+
+  const custo = _orcFormItens.reduce((a,i)=>a+i.sub, 0);
   const taxa = parseFloat(document.getElementById('orc-taxa').value)||0;
-  const total = subTotal + taxa;
+  const pessoas = parseInt(document.getElementById('orc-pessoas').value)||1;
+
+  const quebrasEur = custo * (quebrasP/100);
+  const custoTotal = custo + quebrasEur;
+  const margemEur = custoTotal * (margemP/100);
+  const precoSemTaxa = custoTotal + margemEur;
+  const precoFinal = precoSemTaxa + taxa;
+  const pax = precoFinal / pessoas;
+  const sinalEur = precoFinal * (sinalP/100);
+
+  document.getElementById('prev-custo').textContent = fmtEUR(custo);
+  document.getElementById('prev-quebras').textContent = fmtEUR(quebrasEur);
+  document.getElementById('prev-custo-total').textContent = fmtEUR(custoTotal);
+  document.getElementById('prev-margem').textContent = fmtEUR(margemEur);
+  document.getElementById('prev-taxa').textContent = fmtEUR(taxa);
+  document.getElementById('prev-final').textContent = fmtEUR(precoFinal);
+  document.getElementById('prev-pax').textContent = fmtEUR(pax);
+  document.getElementById('prev-sinal').textContent = fmtEUR(sinalEur);
+}
+
+async function saveOrc(doPrint=false) {
+  const cliNome = document.getElementById('orc-cliente-nome').value.trim();
+  const data = document.getElementById('orc-data').value;
+  if (!cliNome) { toast('Informe o nome do cliente', true); return null; }
+  if (!data) { toast('Informe a data do evento', true); return null; }
+
+  const matched = _clientes.find(c => c.nome.toLowerCase() === cliNome.toLowerCase());
+  const cliId = matched ? matched.id : null;
+
+  const quebrasP = parseFloat(document.getElementById('sl-quebras').value)||0;
+  const margemP = parseFloat(document.getElementById('sl-margem').value)||0;
+  const sinalP = parseFloat(document.getElementById('sl-sinal').value)||0;
+  const taxa = parseFloat(document.getElementById('orc-taxa').value)||0;
+  const custo = _orcFormItens.reduce((a,i)=>a+i.sub, 0);
+  const quebrasEur = custo * (quebrasP/100);
+  const custoTotal = custo + quebrasEur;
+  const margemEur = custoTotal * (margemP/100);
+  const precoFinal = custoTotal + margemEur + taxa;
   const editId = document.getElementById('orc-edit-id').value;
 
   showLoader(true);
+  let savedId = null;
   try {
     let orcId = editId;
+    const orcData = {
+      cliente_id: cliId, cliente_nome: cliNome,
+      data_evento: data, hora_evento: document.getElementById('orc-hora').value,
+      local_evento: document.getElementById('orc-local').value,
+      num_pessoas: parseInt(document.getElementById('orc-pessoas').value)||1,
+      status: document.getElementById('orc-status').value,
+      notas: document.getElementById('orc-obs').value,
+      quebras_percent: quebrasP, margem_percent: margemP, sinal_percent: sinalP,
+      preco_final: precoFinal, total: precoFinal
+    };
     if (editId) {
-      await sb.from('orcamentos').update({
-        cliente_id: cliId, cliente_nome: cliNome,
-        data_evento: data, hora_evento: document.getElementById('orc-hora').value,
-        local_evento: document.getElementById('orc-local').value,
-        num_pessoas: parseInt(document.getElementById('orc-pessoas').value)||1,
-        status: document.getElementById('orc-status').value,
-        notas: document.getElementById('orc-obs').value,
-        total
-      }).eq('id', editId);
+      await sb.from('orcamentos').update(orcData).eq('id', editId);
       await sb.from('orcamento_itens').delete().eq('orcamento_id', editId);
+      savedId = editId;
     } else {
       const cfg = await sb.from('config').select('value').eq('key','next_orc_num').single();
       const num = parseInt(cfg.data?.value||1);
-      const res = await sb.from('orcamentos').insert({
-        numero: num, cliente_id: cliId, cliente_nome: cliNome,
-        data_evento: data, hora_evento: document.getElementById('orc-hora').value,
-        local_evento: document.getElementById('orc-local').value,
-        num_pessoas: parseInt(document.getElementById('orc-pessoas').value)||1,
-        status: document.getElementById('orc-status').value,
-        notas: document.getElementById('orc-obs').value,
-        total
-      }).select().single();
+      const res = await sb.from('orcamentos').insert({numero: num, ...orcData}).select().single();
       orcId = res.data.id;
+      savedId = orcId;
       await sb.from('config').update({value: String(num+1)}).eq('key','next_orc_num');
     }
     if (_orcFormItens.length) {
@@ -628,10 +953,16 @@ async function saveOrc() {
       })));
     }
     await loadAll();
-    toast('Orçamento guardado!');
-    nav('orcamentos');
-  } catch(e) { toast('Erro: '+e.message, true); }
+    toast('OrÃ§amento guardado!');
+    if (!doPrint) nav('orcamentos');
+  } catch(e) { toast('Erro: '+e.message, true); savedId = null; }
   showLoader(false);
+  return savedId;
+}
+
+async function saveAndPDF() {
+  const id = await saveOrc(true);
+  if (id) { setTimeout(() => printOrc(id), 300); }
 }
 
 function editOrc(id) {
@@ -643,10 +974,7 @@ function editOrc(id) {
 
 // CLIENTES
 let _clientes_filtered = [];
-function renderCli() {
-  _clientes_filtered = [..._clientes];
-  renderCliTable();
-}
+function renderCli() { _clientes_filtered = [..._clientes]; renderCliTable(); }
 function filterCli() {
   const q = document.getElementById('search-cli').value.toLowerCase();
   _clientes_filtered = _clientes.filter(c =>
@@ -657,19 +985,19 @@ function filterCli() {
 function renderCliTable() {
   const wrap = document.getElementById('tbl-cli-wrap');
   if (!_clientes_filtered.length) {
-    wrap.innerHTML = '<div class="empty-state"><div class="big">👥</div><p>Nenhum cliente registado</p></div>'; return;
+    wrap.innerHTML = '<div class="empty-state"><div class="big">ð¥</div><p>Nenhum cliente registado</p></div>'; return;
   }
   wrap.innerHTML = `<table>
-    <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Morada</th><th>Ações</th></tr></thead>
+    <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Morada</th><th>AÃ§Ãµes</th></tr></thead>
     <tbody>${_clientes_filtered.map(c=>`
       <tr>
         <td><strong>${c.nome}</strong></td>
-        <td>${c.email||'—'}</td>
-        <td>${c.telefone||'—'}</td>
-        <td>${c.morada||'—'}</td>
+        <td>${c.email||'â'}</td>
+        <td>${c.telefone||'â'}</td>
+        <td>${c.morada||'â'}</td>
         <td>
-          <button class="btn btn-outline btn-sm" onclick="editCli('${c.id}')">✏️ Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="delCli('${c.id}')">🗑</button>
+          <button class="btn btn-outline btn-sm" onclick="editCli('${c.id}')">âï¸ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="delCli('${c.id}')">ð</button>
         </td>
       </tr>`).join('')}
     </tbody></table>`;
@@ -689,30 +1017,23 @@ function editCli(id) { openClienteModal(_clientes.find(c=>c.id===id)); }
 
 async function saveCli() {
   const nome = document.getElementById('cli-nome').value.trim();
-  if (!nome) { toast('Nome obrigatório', true); return; }
+  if (!nome) { toast('Nome obrigatÃ³rio', true); return; }
   const data = { nome, email: document.getElementById('cli-email').value, telefone: document.getElementById('cli-tel').value, morada: document.getElementById('cli-morada').value, notas: document.getElementById('cli-notas').value };
   const editId = document.getElementById('cli-edit-id').value;
   showLoader(true);
   if (editId) await sb.from('clientes').update(data).eq('id', editId);
   else await sb.from('clientes').insert(data);
-  await loadAll();
-  showLoader(false);
-  closeModal('modal-cli');
-  toast('Cliente guardado!');
-  renderCli();
+  await loadAll(); showLoader(false); closeModal('modal-cli'); toast('Cliente guardado!'); renderCli();
 }
 
 async function delCli(id) {
   if (!confirm('Eliminar este cliente?')) return;
   showLoader(true);
   await sb.from('clientes').delete().eq('id', id);
-  await loadAll();
-  showLoader(false);
-  toast('Cliente eliminado');
-  renderCli();
+  await loadAll(); showLoader(false); toast('Cliente eliminado'); renderCli();
 }
 
-// CARDÁPIO
+// CARDÃPIO
 function renderCard() {
   const cats = ['Todos', ...new Set(_pratos.map(p=>p.categoria))];
   document.getElementById('cat-tags').innerHTML = cats.map(c=>`<span class="tag ${c===_cardCat?'active':''}" onclick="setCardCat('${c}')">${c}</span>`).join('');
@@ -728,10 +1049,10 @@ function renderCard() {
       <div class="prato-preco">${fmtEUR(p.preco_unit)}</div>
       <div class="prato-desc">${p.descricao||''}</div>
       <div class="prato-actions">
-        <button class="btn btn-outline btn-sm" onclick="editPrato('${p.id}')">✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="delPrato('${p.id}')">🗑</button>
+        <button class="btn btn-outline btn-sm" onclick="editPrato('${p.id}')">âï¸</button>
+        <button class="btn btn-danger btn-sm" onclick="delPrato('${p.id}')">ð</button>
       </div>
-    </div>`).join('') : '<div class="empty-state" style="grid-column:1/-1"><div class="big">🍽️</div><p>Nenhum prato encontrado</p></div>';
+    </div>`).join('') : '<div class="empty-state" style="grid-column:1/-1"><div class="big">ð½ï¸</div><p>Nenhum prato encontrado</p></div>';
 }
 function setCardCat(c) { _cardCat=c; renderCard(); }
 function filterCard() { renderCard(); }
@@ -749,30 +1070,23 @@ function editPrato(id) { openPratoModal(_pratos.find(p=>p.id===id)); }
 
 async function savePrato() {
   const nome = document.getElementById('prato-nome').value.trim();
-  if (!nome) { toast('Nome obrigatório', true); return; }
+  if (!nome) { toast('Nome obrigatÃ³rio', true); return; }
   const data = { nome, categoria: document.getElementById('prato-cat').value, preco_unit: parseFloat(document.getElementById('prato-preco').value)||0, descricao: document.getElementById('prato-desc').value };
   const editId = document.getElementById('prato-edit-id').value;
   showLoader(true);
   if (editId) await sb.from('pratos').update(data).eq('id', editId);
   else await sb.from('pratos').insert(data);
-  await loadAll();
-  showLoader(false);
-  closeModal('modal-prato');
-  toast('Prato guardado!');
-  renderCard();
+  await loadAll(); showLoader(false); closeModal('modal-prato'); toast('Prato guardado!'); renderCard();
 }
 
 async function delPrato(id) {
   if (!confirm('Eliminar este prato?')) return;
   showLoader(true);
   await sb.from('pratos').delete().eq('id', id);
-  await loadAll();
-  showLoader(false);
-  toast('Prato eliminado');
-  renderCard();
+  await loadAll(); showLoader(false); toast('Prato eliminado'); renderCard();
 }
 
-// FICHAS TÉCNICAS
+// FICHAS TÃCNICAS
 function renderFichas() {
   const cats = ['Todos', ...new Set(_pratos.map(p=>p.categoria))];
   document.getElementById('ficha-cat-tags').innerHTML = cats.map(c=>`<span class="tag ${c===_fichaCat?'active':''}" onclick="setFichaCat('${c}')">${c}</span>`).join('');
@@ -783,9 +1097,9 @@ function renderFichas() {
       <div class="ficha-header">
         <div>
           <div class="ficha-titulo">${p.nome}</div>
-          <div class="ficha-meta"><span class="badge-cat">${p.categoria}</span> · ${fmtEUR(p.preco_unit)} · ${p.descricao||''}</div>
+          <div class="ficha-meta"><span class="badge-cat">${p.categoria}</span> Â· ${fmtEUR(p.preco_unit)} Â· ${p.descricao||''}</div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="saveIngrs('${p.id}')">💾 Guardar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveIngrs('${p.id}')">ð¾ Guardar</button>
       </div>
       <div style="font-size:12px;font-weight:700;color:var(--cinza-escuro);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Ingredientes</div>
       <div style="display:grid;grid-template-columns:1fr 100px 80px 32px;gap:6px;margin-bottom:6px;font-size:11px;font-weight:700;color:var(--cinza-escuro)">
@@ -797,10 +1111,10 @@ function renderFichas() {
             <input type="text" value="${ing.nome||''}" placeholder="Ex: Bacalhau" onchange="updateIngr('${p.id}',${i},'nome',this.value)">
             <input type="number" value="${ing.qtd||''}" placeholder="0" min="0" step="0.01" onchange="updateIngr('${p.id}',${i},'qtd',this.value)">
             <input type="text" value="${ing.und||''}" placeholder="kg/un/L" onchange="updateIngr('${p.id}',${i},'und',this.value)">
-            <button class="btn btn-danger btn-sm" style="padding:4px 8px" onclick="removeIngr('${p.id}',${i})">✕</button>
+            <button class="btn btn-danger btn-sm" style="padding:4px 8px" onclick="removeIngr('${p.id}',${i})">â</button>
           </li>`).join('')}
       </ul>
-      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="addIngr('${p.id}')">➕ Ingrediente</button>
+      <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="addIngr('${p.id}')">â Ingrediente</button>
     </div>`;
   }).join('');
 }
@@ -820,25 +1134,145 @@ function removeIngr(pid, idx) {
   const p = _pratos.find(x=>x.id===pid);
   if (!p) return;
   const arr = Array.isArray(p.ingredientes)?[...p.ingredientes]:[];
-  arr.splice(idx,1);
-  p.ingredientes = arr;
-  renderFichas();
+  arr.splice(idx,1); p.ingredientes = arr; renderFichas();
 }
 function updateIngr(pid, idx, field, val) {
   const p = _pratos.find(x=>x.id===pid);
   if (!p||!Array.isArray(p.ingredientes)) return;
   p.ingredientes[idx][field] = val;
 }
-
 async function saveIngrs(pid) {
   const p = _pratos.find(x=>x.id===pid);
   if (!p) return;
   showLoader(true);
   await sb.from('pratos').update({ingredientes: p.ingredientes||[]}).eq('id', pid);
-  await loadAll();
+  await loadAll(); showLoader(false); toast('Ficha guardada!'); renderFichas();
+}
+
+// MÃO DE OBRA
+function renderMaoObra() {
+  const grupos = ['SalÃ£o', 'Cozinha', 'LogÃ­stica'];
+  let html = '';
+  grupos.forEach(g => {
+    const profis = _maoObraProfis.filter(p=>p.grupo===g);
+    html += `<div class="mo-group">
+      <div class="mo-group-title">
+        <span>${g === 'SalÃ£o' ? 'ð½ï¸' : g === 'Cozinha' ? 'ð¨âð³' : 'ð'} ${g}</span>
+        <span style="font-size:13px;color:var(--cinza-escuro)">${profis.length} profissional(is)</span>
+      </div>
+      <table class="mo-table">
+        <thead><tr><th>Profissional</th><th>PreÃ§o / Evento (â¬)</th><th>Ãltimo Pag.</th><th>AÃ§Ãµes</th></tr></thead>
+        <tbody>${profis.map(p => {
+          const pags = _maoObraPagamentos.filter(pg=>pg.profissional_id===p.id);
+          const ultPag = pags.length ? pags[0] : null;
+          return `<tr>
+            <td><strong>${p.nome}</strong></td>
+            <td><input type="number" id="prof-preco-${p.id}" value="${p.preco_evento||0}" min="0" step="0.01" style="width:110px;padding:5px 8px;border:1px solid var(--cinza-medio);border-radius:6px;font-size:13px"></td>
+            <td>${ultPag ? `${fmtDate(ultPag.data_pagamento)} Â· <strong>${fmtEUR(ultPag.valor)}</strong><br><span style="font-size:11px;color:var(--cinza-escuro)">${ultPag.evento_ref||''}</span>` : '<span style="color:var(--cinza-escuro);font-size:12px">Sem pagamentos</span>'}</td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick="openPagModal('${p.id}','${p.nome.replace(/'/g,"\\'")}')">ð HistÃ³rico</button>
+              <button class="btn btn-danger btn-sm" onclick="delProf('${p.id}')">ð</button>
+            </td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`;
+  });
+  document.getElementById('mo-profissionais').innerHTML = html || '<div class="empty-state"><div class="big">ð·</div><p>Nenhum profissional cadastrado</p></div>';
+
+  // Resumo pagamentos recentes
+  const recPags = [..._maoObraPagamentos].slice(0,10);
+  if (recPags.length) {
+    document.getElementById('mo-pagamentos').innerHTML = `<table>
+      <thead><tr><th>Profissional</th><th>Data</th><th>Evento</th><th>Valor</th><th>Notas</th></tr></thead>
+      <tbody>${recPags.map(pg=>{
+        const prof = _maoObraProfis.find(p=>p.id===pg.profissional_id);
+        return `<tr>
+          <td><strong>${prof?.nome||'â'}</strong><br><span style="font-size:11px;color:var(--cinza-escuro)">${prof?.grupo||''}</span></td>
+          <td>${fmtDate(pg.data_pagamento)}</td>
+          <td>${pg.evento_ref||'â'}</td>
+          <td><strong style="color:var(--verde)">${fmtEUR(pg.valor)}</strong></td>
+          <td>${pg.notas||'â'}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+  } else {
+    document.getElementById('mo-pagamentos').innerHTML = '<div class="empty-state"><div class="big">ð</div><p>Nenhum pagamento registado ainda</p></div>';
+  }
+}
+
+async function saveAllProfPrecos() {
+  showLoader(true);
+  try {
+    const updates = _maoObraProfis.map(p => {
+      const el = document.getElementById('prof-preco-'+p.id);
+      if (!el) return null;
+      return sb.from('mao_obra_profissionais').update({preco_evento: parseFloat(el.value)||0}).eq('id', p.id);
+    }).filter(Boolean);
+    await Promise.all(updates);
+    await loadAll(); toast('PreÃ§os atualizados!');
+  } catch(e) { toast('Erro: '+e.message, true); }
   showLoader(false);
-  toast('Ficha guardada!');
-  renderFichas();
+  renderMaoObra();
+}
+
+async function delProf(id) {
+  if (!confirm('Eliminar este profissional?')) return;
+  showLoader(true);
+  await sb.from('mao_obra_profissionais').delete().eq('id', id);
+  await loadAll(); showLoader(false); toast('Profissional eliminado'); renderMaoObra();
+}
+
+function openNovoProfModal() {
+  document.getElementById('np-nome').value = '';
+  document.getElementById('np-grupo').value = 'SalÃ£o';
+  document.getElementById('np-preco').value = 0;
+  openModal('modal-novo-prof');
+}
+async function saveNovoprof() {
+  const nome = document.getElementById('np-nome').value.trim();
+  if (!nome) { toast('Nome obrigatÃ³rio', true); return; }
+  showLoader(true);
+  await sb.from('mao_obra_profissionais').insert({
+    nome, grupo: document.getElementById('np-grupo').value,
+    preco_evento: parseFloat(document.getElementById('np-preco').value)||0
+  });
+  await loadAll(); showLoader(false); closeModal('modal-novo-prof'); toast('Profissional adicionado!'); renderMaoObra();
+}
+
+function openPagModal(profId, profNome) {
+  document.getElementById('pag-prof-id').value = profId;
+  document.getElementById('modal-pag-title').textContent = `HistÃ³rico â ${profNome}`;
+  document.getElementById('pag-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('pag-valor').value = 0;
+  document.getElementById('pag-evento').value = '';
+  document.getElementById('pag-notas').value = '';
+
+  const pags = _maoObraPagamentos.filter(pg=>pg.profissional_id===profId);
+  document.getElementById('pag-historico').innerHTML = pags.length
+    ? `<table class="orc-itens-table"><thead><tr><th>Data</th><th>Evento</th><th>Valor</th><th>Notas</th></tr></thead>
+       <tbody>${pags.map(pg=>`<tr><td>${fmtDate(pg.data_pagamento)}</td><td>${pg.evento_ref||'â'}</td><td><strong>${fmtEUR(pg.valor)}</strong></td><td>${pg.notas||'â'}</td></tr>`).join('')}</tbody></table>`
+    : '<div style="color:var(--cinza-escuro);font-size:13px;padding:10px 0;margin-bottom:12px">Nenhum pagamento registado</div>';
+
+  openModal('modal-pag');
+}
+async function savePag() {
+  const profId = document.getElementById('pag-prof-id').value;
+  const valor = parseFloat(document.getElementById('pag-valor').value)||0;
+  const dataP = document.getElementById('pag-data').value;
+  if (!dataP) { toast('Informe a data', true); return; }
+  showLoader(true);
+  await sb.from('mao_obra_pagamentos').insert({
+    profissional_id: profId,
+    data_pagamento: dataP,
+    valor,
+    evento_ref: document.getElementById('pag-evento').value,
+    notas: document.getElementById('pag-notas').value
+  });
+  await loadAll(); showLoader(false); toast('Pagamento registado!');
+  // Reopen modal to refresh
+  const prof = _maoObraProfis.find(p=>p.id===profId);
+  if (prof) openPagModal(profId, prof.nome);
 }
 
 // INIT
