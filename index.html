@@ -138,6 +138,55 @@
   .mo-group { margin-bottom: 28px; }
   .mo-group-title { font-size: 14px; font-weight: 700; color: var(--verde); padding: 10px 0 8px; border-bottom: 2px solid var(--ouro); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
   .mo-table input[type=number] { width: 100px; padding: 4px 8px; border: 1px solid var(--cinza-medio); border-radius: 6px; font-size: 13px; }
+  /* ===== RESPONSIVE MOBILE ===== */
+  #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+  #sidebar-overlay.visible { display: block; }
+  .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px 8px; color: var(--verde); font-size: 26px; line-height: 1; flex-shrink: 0; }
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-260px); transition: transform 0.25s ease; z-index: 200; width: 240px; }
+    #sidebar.open { transform: translateX(0); }
+    #main { margin-left: 0; }
+    .hamburger { display: flex; align-items: center; justify-content: center; }
+    .topbar { padding: 12px 16px; gap: 10px; }
+    .topbar h2 { font-size: 17px; }
+    .topbar .sub { font-size: 12px; }
+    .topbar-actions { flex-wrap: wrap; gap: 6px; }
+    .content { padding: 14px 12px; }
+    .grid2, .grid3 { grid-template-columns: 1fr; gap: 14px; }
+    .pricing-layout { grid-template-columns: 1fr; gap: 14px; }
+    .form-grid { grid-template-columns: 1fr; gap: 12px; }
+    .form-group.span2 { grid-column: span 1; }
+    .kpi-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .kpi-card { padding: 16px 18px; }
+    .kpi-card .kpi-val { font-size: 26px; }
+    .panel-header { padding: 14px 16px; flex-wrap: wrap; gap: 8px; }
+    .panel-body { padding: 14px 16px; overflow-x: auto; }
+    table { font-size: 12.5px; min-width: 520px; }
+    th, td { padding: 9px 10px; }
+    .orc-itens-table { min-width: 400px; font-size: 12px; }
+    .orc-itens-table th, .orc-itens-table td { padding: 6px 8px; }
+    .orc-itens-table input[type=number] { width: 56px; }
+    .ingr-row { grid-template-columns: 1fr 72px 60px 28px; gap: 5px; }
+    .search-bar { width: 100%; max-width: 100%; }
+    .modal { padding: 20px 16px; }
+    .modal .form-grid { grid-template-columns: 1fr; }
+    .btn { padding: 8px 14px; font-size: 13px; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .total-bar { padding: 10px 16px; border-radius: 0 0 10px 10px; }
+    .total-bar .total-val { font-size: 20px; }
+    .share-row { flex-direction: column; }
+    .mo-table { overflow-x: auto; }
+    .mo-table table { min-width: 340px; }
+    .cardapio-grid { grid-template-columns: 1fr; }
+    .ficha-header { flex-direction: column; gap: 8px; align-items: flex-start; }
+    .tag-group { gap: 6px; }
+    .tag { padding: 5px 10px; font-size: 12px; }
+    .toast { bottom: 16px; right: 12px; left: 12px; text-align: center; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { justify-content: center; }
+    .detail-row { flex-direction: column; gap: 2px; }
+    .detail-row strong { min-width: unset; }
+  }
   /* Print */
   #print-area { display: none; }
   @media print {
@@ -166,6 +215,8 @@
 <div id="loader" class="loader"><div class="spin"></div><p>A carregar dados...</p></div>
 <div id="toast" class="toast"></div>
 <div id="print-area"></div>
+
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <div id="sidebar">
   <div class="logo-area">
@@ -562,6 +613,17 @@ function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 
 // Navigation
 let _curSection = 'dashboard';
+function toggleSidebar() {
+  const sb2 = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sb2.classList.toggle('open');
+  overlay.classList.toggle('visible');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('visible');
+}
+
 function nav(sec) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -577,6 +639,8 @@ function nav(sec) {
   if (sec === 'fichas') renderFichas();
   if (sec === 'novo-orc') initOrcForm();
   if (sec === 'mao-obra') renderMaoObra();
+  // Close sidebar on mobile after navigating
+  if (window.innerWidth <= 768) closeSidebar();
 }
 
 // Load all data
@@ -1541,6 +1605,15 @@ async function savePag() {
 (async () => {
   await loadAll();
   renderDash();
+  // Inject hamburger button into every topbar for mobile
+  document.querySelectorAll('.topbar').forEach(tb => {
+    const btn = document.createElement('button');
+    btn.className = 'hamburger';
+    btn.setAttribute('aria-label', 'Menu');
+    btn.innerHTML = '&#9776;';
+    btn.onclick = toggleSidebar;
+    tb.insertBefore(btn, tb.firstChild);
+  });
 })();
 </script>
 </body>
