@@ -966,10 +966,10 @@ function initOrcForm(orc=null) {
 
   // Set sliders from saved values
   const margemSaved = orc ? (orc.margem_percent||0) : 0;
-  document.getElementById('sl-quebras').value = orc ? (orc.quebras_percent||5) : 5;
+  document.getElementById('sl-quebras').value = orc ? (orc.quebras_percent||0) : 0;
   document.getElementById('sl-margem').value = Math.min(margemSaved, 500);
   document.getElementById('sl-margem-val').value = margemSaved;
-  document.getElementById('sl-sinal').value = orc ? (orc.sinal_percent||30) : 30;
+  document.getElementById('sl-sinal').value = orc ? (orc.sinal_percent||0) : 0;
 
   // Populate datalist for client autocomplete
   const dl = document.getElementById('cli-datalist');
