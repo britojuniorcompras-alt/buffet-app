@@ -965,7 +965,7 @@ function initOrcForm(orc=null) {
   document.getElementById('orc-obs').value = orc ? orc.notas||'' : '';
 
   // Set sliders from saved values
-  const margemSaved = orc ? (orc.margem_percent||30) : 30;
+  const margemSaved = orc ? (orc.margem_percent||0) : 0;
   document.getElementById('sl-quebras').value = orc ? (orc.quebras_percent||5) : 5;
   document.getElementById('sl-margem').value = Math.min(margemSaved, 500);
   document.getElementById('sl-margem-val').value = margemSaved;
@@ -1015,9 +1015,9 @@ function initOrcForm(orc=null) {
   } else {
     _orcFormItens = [];
   }
-  // Reset labor quantities to default (qtd_tipica)
+  // Reset labor quantities to 0 — user fills in per event
   _orcMaoObraQtd = {};
-  _maoObraProfis.forEach(p => { _orcMaoObraQtd[p.id] = p.qtd_tipica || 0; });
+  _maoObraProfis.forEach(p => { _orcMaoObraQtd[p.id] = 0; });
   renderOrcItens();
   renderOrcMaoObra();
   updatePricing();
