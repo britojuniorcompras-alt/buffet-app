@@ -10,6 +10,7 @@
     --verde: #1a4731; --verde-claro: #2d6a4f; --ouro: #c9a84c; --ouro-claro: #e8c97a;
     --branco: #fafaf8; --cinza: #f2f2ee; --cinza-medio: #d4d4cc; --cinza-escuro: #8a8a80;
     --texto: #1a1a16; --perigo: #c0392b; --sucesso: #27ae60; --aviso: #e67e22;
+    --azul: #2471a3; --azul-claro: #d6eaf8; --amarelo: #d4ac0d; --vermelho: #c0392b;
     --sombra: 0 2px 12px rgba(0,0,0,0.1); --sombra-forte: 0 8px 32px rgba(0,0,0,0.18);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -67,6 +68,8 @@
   .badge-pendente { background: #fff3cd; color: #856404; }
   .badge-confirmado { background: #d1e7dd; color: #0a3622; }
   .badge-cancelado { background: #f8d7da; color: #58151c; }
+  .badge-concluído { background: #e2e3e5; color: #383d41; }
+  .badge-concluido { background: #e2e3e5; color: #383d41; }
   .badge-cat { background: var(--cinza); color: var(--cinza-escuro); font-size: 11px; padding: 2px 8px; border-radius: 10px; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .form-group { display: flex; flex-direction: column; gap: 6px; }
@@ -84,6 +87,7 @@
   .total-bar .total-label { font-size: 14px; font-weight: 600; opacity: 0.85; }
   .total-bar .total-val { font-size: 24px; font-weight: 800; color: var(--ouro-claro); }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
   .empty-state { text-align: center; padding: 48px 24px; color: var(--cinza-escuro); }
   .empty-state .big { font-size: 48px; }
   .empty-state p { margin-top: 10px; font-size: 14px; }
@@ -171,7 +175,7 @@
   </div>
   <nav>
     <div class="nav-group-label">Principal</div>
-    <button class="active" onclick="nav('dashboard')"><span class="icon">🍊</span> Dashboard</button>
+    <button class="active" onclick="nav('dashboard')"><span class="icon">📊</span> Dashboard</button>
     <div class="nav-group-label">Eventos</div>
     <button onclick="nav('orcamentos')"><span class="icon">📋</span> Orçamentos</button>
     <button onclick="nav('novo-orc')"><span class="icon">➕</span> Novo Orçamento</button>
@@ -201,9 +205,29 @@
           <div class="panel-body" id="dash-recentes"></div>
         </div>
       </div>
-      <div class="panel">
-        <div class="panel-header"><h3>🍽️ Pratos Mais Usados</h3></div>
-        <div class="panel-body" id="dash-pratos"></div>
+      <div class="grid3">
+        <div class="panel">
+          <div class="panel-header"><h3>📊 Receita por Mês</h3></div>
+          <div class="panel-body" id="dash-receita-mes" style="min-height:140px"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>📈 Conversão de Orçamentos</h3></div>
+          <div class="panel-body" id="dash-conversao" style="min-height:140px"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>🏆 Top Clientes</h3></div>
+          <div class="panel-body" id="dash-top-clientes" style="min-height:140px"></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-header"><h3>🎯 Próximos 30 Dias</h3></div>
+          <div class="panel-body" id="dash-30dias"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>💡 Indicadores de Desempenho</h3></div>
+          <div class="panel-body" id="dash-kpis2"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -216,11 +240,15 @@
     </div>
     <div class="content">
       <div class="panel">
-        <div class="panel-header">
+        <div class="panel-header" style="flex-wrap:wrap;gap:10px">
           <h3>Lista de Orçamentos</h3>
-          <input class="search-bar" id="search-orc" placeholder="🔍 Pesquisar..." oninput="filterOrc()">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="tag-group" id="orc-status-tabs" style="margin:0;gap:6px"></div>
+            <input class="search-bar" id="search-orc" placeholder="🔍 Pesquisar..." oninput="filterOrc()" style="width:180px">
+          </div>
         </div>
         <div id="tbl-orc-wrap"></div>
+        <div id="orc-totais-bar" style="padding:12px 24px;background:var(--cinza);border-top:1px solid var(--cinza-medio);font-size:13px;display:flex;gap:24px;flex-wrap:wrap;border-radius:0 0 12px 12px"></div>
       </div>
     </div>
   </div>
@@ -245,9 +273,9 @@
             <div class="form-group"><label>Hora</label><input type="time" id="orc-hora"></div>
             <div class="form-group span2"><label>Local do Evento</label><input type="text" id="orc-local" placeholder="Rua, nº, cidade"></div>
             <div class="form-group"><label>Status</label>
-              <select id="orc-status"><option value="Pendente">Pendente</option><option value="Confirmado">Confirmado</option><option value="Cancelado">Cancelado</option></select>
+              <select id="orc-status"><option value="Pendente">Pendente</option><option value="Confirmado">Confirmado</option><option value="Cancelado">Cancelado</option><option value="Concluído">Concluído</option></select>
             </div>
-            <div class="form-group"><label>Taxa de Serviço (€)</label><input type="number" id="orc-taxa" min="0" value="0" step="0.01" oninput="updatePricing()"></div>
+            <div class="form-group"><label>Taxa de Serviço (R$)</label><input type="number" id="orc-taxa" min="0" value="0" step="0.01" oninput="updatePricing()"></div>
             <div class="form-group span2"><label>Observações</label><textarea id="orc-obs" placeholder="Notas sobre o evento..."></textarea></div>
           </div>
         </div>
@@ -271,7 +299,22 @@
         </div>
         <div class="total-bar">
           <span class="total-label">SUBTOTAL DOS PRATOS</span>
-          <span class="total-val" id="orc-total-disp">€ 0,00</span>
+          <span class="total-val" id="orc-total-disp">R$ 0,00</span>
+        </div>
+      </div>
+
+      <!-- MÃO DE OBRA NO ORÇAMENTO -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3>👷 Mão de Obra do Evento</h3>
+          <span style="font-size:12px;color:var(--cinza-escuro)">Custo incluído automaticamente na precificação</span>
+        </div>
+        <div class="panel-body" id="orc-mao-obra-list">
+          <div style="color:var(--cinza-escuro);font-size:13px">A carregar profissionais...</div>
+        </div>
+        <div class="total-bar" style="background:var(--cinza-escuro)">
+          <span class="total-label">CUSTO DE MÃO DE OBRA</span>
+          <span class="total-val" id="orc-mo-total-disp">R$ 0,00</span>
         </div>
       </div>
 
@@ -286,8 +329,8 @@
                 <input type="range" id="sl-quebras" min="0" max="30" value="5" oninput="updatePricing()">
               </div>
               <div class="slider-group">
-                <label>Margem de Lucro <span id="sl-margem-val">30</span>%</label>
-                <input type="range" id="sl-margem" min="0" max="80" value="30" oninput="updatePricing()">
+                <label>Margem de Lucro <input type="number" id="sl-margem-val" value="30" min="0" max="9999" step="1" style="width:65px;padding:2px 6px;border:1px solid var(--cinza-medio);border-radius:5px;font-size:15px;font-weight:800;color:var(--ouro);background:transparent;display:inline" oninput="document.getElementById('sl-margem').value=Math.min(this.value,500);updatePricing()">%</label>
+                <input type="range" id="sl-margem" min="0" max="500" value="30" oninput="document.getElementById('sl-margem-val').value=this.value;updatePricing()">
               </div>
               <div class="slider-group">
                 <label>Sinal de Entrada <span id="sl-sinal-val">30</span>%</label>
@@ -295,14 +338,15 @@
               </div>
             </div>
             <div class="pricing-preview">
-              <div class="prev-row"><span>Custo dos pratos</span><strong id="prev-custo">€ 0,00</strong></div>
-              <div class="prev-row"><span>+ Quebras/Perdas</span><strong id="prev-quebras">€ 0,00</strong></div>
-              <div class="prev-row"><span>= Custo total</span><strong id="prev-custo-total">€ 0,00</strong></div>
-              <div class="prev-row"><span>+ Margem de lucro</span><strong id="prev-margem">€ 0,00</strong></div>
-              <div class="prev-row"><span>+ Taxa de serviço</span><strong id="prev-taxa">€ 0,00</strong></div>
-              <div class="prev-row highlight"><span>💶 Preço Final</span><span id="prev-final">€ 0,00</span></div>
-              <div class="prev-row"><span>Valor por pessoa</span><strong id="prev-pax">€ 0,00</strong></div>
-              <div class="prev-row aviso-row"><span>🤝 Sinal de entrada</span><strong id="prev-sinal">€ 0,00</strong></div>
+              <div class="prev-row"><span>Custo dos pratos</span><strong id="prev-custo">R$ 0,00</strong></div>
+              <div class="prev-row"><span>+ Quebras/Perdas</span><strong id="prev-quebras">R$ 0,00</strong></div>
+              <div class="prev-row"><span>+ Mão de obra</span><strong id="prev-mao-obra">R$ 0,00</strong></div>
+              <div class="prev-row"><span>= Custo total</span><strong id="prev-custo-total">R$ 0,00</strong></div>
+              <div class="prev-row"><span>+ Margem de lucro</span><strong id="prev-margem">R$ 0,00</strong></div>
+              <div class="prev-row"><span>+ Taxa de serviço</span><strong id="prev-taxa">R$ 0,00</strong></div>
+              <div class="prev-row highlight"><span>💰 Preço Final</span><span id="prev-final">R$ 0,00</span></div>
+              <div class="prev-row"><span>Valor por pessoa</span><strong id="prev-pax">R$ 0,00</strong></div>
+              <div class="prev-row aviso-row"><span>🤝 Sinal de entrada</span><strong id="prev-sinal">R$ 0,00</strong></div>
             </div>
           </div>
         </div>
@@ -321,13 +365,17 @@
   <div id="sec-clientes" class="section">
     <div class="topbar">
       <div><h2>Clientes</h2><div class="sub">Registo de clientes</div></div>
-      <div class="topbar-actions"><button class="btn btn-primary" onclick="openClienteModal()">➕ Novo Cliente</button></div>
+      <div class="topbar-actions">
+        <input class="search-bar" id="search-cli" placeholder="🔍 Pesquisar..." oninput="filterCli()">
+        <button class="btn btn-primary" onclick="openClienteModal()">➕ Novo Cliente</button>
+      </div>
     </div>
     <div class="content">
+      <div class="kpi-grid" id="cli-kpis" style="margin-bottom:20px"></div>
       <div class="panel">
         <div class="panel-header">
           <h3>Lista de Clientes</h3>
-          <input class="search-bar" id="search-cli" placeholder="🔍 Pesquisar..." oninput="filterCli()">
+          <span id="cli-count" style="font-size:13px;color:var(--cinza-escuro)"></span>
         </div>
         <div id="tbl-cli-wrap"></div>
       </div>
@@ -417,7 +465,7 @@
           <option value="Bebidas">Bebidas</option>
         </select>
       </div>
-      <div class="form-group"><label>Preço Unitário (€) *</label><input type="number" id="prato-preco" min="0" step="0.01" value="0"></div>
+      <div class="form-group"><label>Preço Unitário (R$) *</label><input type="number" id="prato-preco" min="0" step="0.01" value="0"></div>
       <div class="form-group span2"><label>Descrição</label><textarea id="prato-desc" placeholder="Descrição, unidade, alergénios..."></textarea></div>
     </div>
     <input type="hidden" id="prato-edit-id">
@@ -457,7 +505,7 @@
           <option value="Logística">Logística</option>
         </select>
       </div>
-      <div class="form-group"><label>Preço por evento (€)</label><input type="number" id="np-preco" min="0" step="0.01" value="0"></div>
+      <div class="form-group"><label>Preço por evento (R$)</label><input type="number" id="np-preco" min="0" step="0.01" value="0"></div>
     </div>
     <div class="form-actions">
       <button class="btn btn-primary" onclick="saveNovoprof()">💾 Guardar</button>
@@ -475,7 +523,7 @@
     <h3 style="font-size:15px;margin-bottom:14px">Registar Pagamento</h3>
     <div class="form-grid">
       <div class="form-group"><label>Data do Pagamento</label><input type="date" id="pag-data"></div>
-      <div class="form-group"><label>Valor (€)</label><input type="number" id="pag-valor" min="0" step="0.01" value="0"></div>
+      <div class="form-group"><label>Valor (R$)</label><input type="number" id="pag-valor" min="0" step="0.01" value="0"></div>
       <div class="form-group span2"><label>Referência do Evento</label><input type="text" id="pag-evento" placeholder="Ex: Evento João Silva, 15/09"></div>
       <div class="form-group span2"><label>Notas</label><textarea id="pag-notas" placeholder="Observações..."></textarea></div>
     </div>
@@ -496,6 +544,7 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 let _pratos = [], _clientes = [], _orcamentos = [], _orcItens = [];
 let _maoObraProfis = [], _maoObraPagamentos = [];
 let _orcFormItens = [];
+let _orcMaoObraQtd = {}; // profId → quantidade para o evento atual
 let _cardCat = 'Todos', _fichaCat = 'Todos';
 
 // Utils
@@ -584,47 +633,187 @@ function renderDash() {
       <span style="font-weight:700;color:var(--verde)">${fmtEUR(o.preco_final||o.total)}</span>
     </div>`).join('') : '<div style="color:var(--cinza-escuro);font-size:13px;padding:10px 0">Nenhum orçamento ainda</div>';
 
-  const count = {};
-  _orcItens.forEach(i => { count[i.nome_prato] = (count[i.nome_prato]||0)+1; });
-  const top = Object.entries(count).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  document.getElementById('dash-pratos').innerHTML = top.length
-    ? '<div class="tag-group">'+top.map(([n,c])=>`<span class="tag active">${n} (${c} ev.)</span>`).join('')+'</div>'
+  // ── Receita por Mês (últimos 6 meses) ──
+  const receitaPorMes = {};
+  const hoje2 = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(hoje2.getFullYear(), hoje2.getMonth() - i, 1);
+    const key = d.toISOString().slice(0,7);
+    receitaPorMes[key] = 0;
+  }
+  _orcamentos.forEach(o => {
+    const key = (o.created_at||'').slice(0,7);
+    if (key in receitaPorMes) receitaPorMes[key] += Number(o.preco_final||o.total||0);
+  });
+  const maxReceita = Math.max(...Object.values(receitaPorMes), 1);
+  const mesesLabels = { '01':'Jan','02':'Fev','03':'Mar','04':'Abr','05':'Mai','06':'Jun','07':'Jul','08':'Ago','09':'Set','10':'Out','11':'Nov','12':'Dez' };
+  document.getElementById('dash-receita-mes').innerHTML = '<div style="display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:8px">' +
+    Object.entries(receitaPorMes).map(([m,v]) => {
+      const pct = Math.round((v/maxReceita)*100);
+      const label = mesesLabels[m.slice(5,7)] || m.slice(5,7);
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-size:10px;color:var(--cinza-escuro);font-weight:700">${fmtEUR(v)}</div>
+        <div style="width:100%;background:var(--verde);border-radius:4px 4px 0 0;height:${Math.max(pct,2)}%;min-height:3px;transition:height .3s"></div>
+        <div style="font-size:11px;color:var(--cinza-escuro)">${label}</div>
+      </div>`;
+    }).join('') + '</div>';
+
+  // ── Conversão de Orçamentos ──
+  const totalOrc = _orcamentos.length || 1;
+  const stCounts = {Pendente:0,Confirmado:0,Cancelado:0,Concluído:0};
+  _orcamentos.forEach(o => { const s = o.status||'Pendente'; stCounts[s] = (stCounts[s]||0)+1; });
+  const stColors = {Pendente:'var(--amarelo)',Confirmado:'var(--verde)',Cancelado:'var(--vermelho)',Concluído:'#6c757d'};
+  const stIcons = {Pendente:'⏳',Confirmado:'✅',Cancelado:'❌',Concluído:'🏁'};
+  const taxaConv = _orcamentos.length ? Math.round((stCounts.Confirmado/_orcamentos.length)*100) : 0;
+  document.getElementById('dash-conversao').innerHTML =
+    `<div style="font-size:28px;font-weight:700;color:var(--verde);margin-bottom:4px">${taxaConv}%</div>
+    <div style="font-size:12px;color:var(--cinza-escuro);margin-bottom:12px">Taxa de conversão</div>` +
+    Object.entries(stCounts).filter(([,v])=>v>0).map(([s,v]) => {
+      const pct = Math.round((v/totalOrc)*100);
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:13px">${stIcons[s]||'•'}</span>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">
+            <span>${s}</span><span style="font-weight:700">${v} (${pct}%)</span>
+          </div>
+          <div style="background:var(--cinza);border-radius:4px;height:6px">
+            <div style="background:${stColors[s]||'var(--azul)'};width:${pct}%;height:100%;border-radius:4px;transition:width .3s"></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+  // ── Top Clientes ──
+  const clienteReceita = {};
+  _orcamentos.forEach(o => {
+    const c = o.cliente_nome||'Desconhecido';
+    if (!clienteReceita[c]) clienteReceita[c] = {total:0,eventos:0};
+    clienteReceita[c].total += Number(o.preco_final||o.total||0);
+    clienteReceita[c].eventos++;
+  });
+  const topClientes = Object.entries(clienteReceita).sort((a,b)=>b[1].total-a[1].total).slice(0,5);
+  document.getElementById('dash-top-clientes').innerHTML = topClientes.length
+    ? topClientes.map(([nome,d],i) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--cinza)">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--azul);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">${i+1}</div>
+        <div style="flex:1;overflow:hidden">
+          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nome}</div>
+          <div style="font-size:11px;color:var(--cinza-escuro)">${d.eventos} evento${d.eventos>1?'s':''}</div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--verde)">${fmtEUR(d.total)}</div>
+      </div>`).join('')
     : '<div style="color:var(--cinza-escuro);font-size:13px">Nenhum dado ainda</div>';
+
+  // ── Próximos 30 Dias ──
+  const hoje30 = new Date();
+  const lim30 = new Date(); lim30.setDate(lim30.getDate()+30);
+  const hojeStr = hoje30.toISOString().slice(0,10);
+  const limStr = lim30.toISOString().slice(0,10);
+  const prox30 = _orcamentos.filter(o => o.data_evento >= hojeStr && o.data_evento <= limStr);
+  const prox30conf = prox30.filter(o => o.status==='Confirmado');
+  const receitaConf30 = prox30conf.reduce((a,o)=>a+Number(o.preco_final||o.total||0),0);
+  const totalPessoas30 = prox30conf.reduce((a,o)=>a+Number(o.num_pessoas||0),0);
+  document.getElementById('dash-30dias').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div style="background:var(--azul-claro,#e8f4fd);border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:28px;font-weight:700;color:var(--azul)">${prox30.length}</div>
+        <div style="font-size:12px;color:var(--cinza-escuro)">Eventos previstos</div>
+      </div>
+      <div style="background:#e8fdf0;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:var(--verde)">${fmtEUR(receitaConf30)}</div>
+        <div style="font-size:12px;color:var(--cinza-escuro)">Receita confirmada</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--cinza-escuro)">
+      ${prox30conf.length} confirmados · ${totalPessoas30} pessoas servidas · ${prox30.length-prox30conf.length} pendentes
+    </div>`;
+
+  // ── Indicadores de Desempenho ──
+  const ticketMedio = _orcamentos.length ? _orcamentos.reduce((a,o)=>a+Number(o.preco_final||o.total||0),0) / _orcamentos.length : 0;
+  const totalPessoas = _orcamentos.reduce((a,o)=>a+Number(o.num_pessoas||0),0);
+  const ticketPessoa = totalPessoas ? _orcamentos.reduce((a,o)=>a+Number(o.preco_final||o.total||0),0) / totalPessoas : 0;
+  const receitaTotal = _orcamentos.filter(o=>o.status==='Confirmado').reduce((a,o)=>a+Number(o.preco_final||o.total||0),0);
+  const mediasPessoas = _orcamentos.length ? Math.round(totalPessoas/_orcamentos.length) : 0;
+  document.getElementById('dash-kpis2').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="border:1px solid var(--cinza);border-radius:8px;padding:12px">
+        <div style="font-size:11px;color:var(--cinza-escuro);margin-bottom:4px">🎟️ Ticket Médio/Evento</div>
+        <div style="font-size:18px;font-weight:700;color:var(--azul)">${fmtEUR(ticketMedio)}</div>
+      </div>
+      <div style="border:1px solid var(--cinza);border-radius:8px;padding:12px">
+        <div style="font-size:11px;color:var(--cinza-escuro);margin-bottom:4px">👤 Valor por Pessoa</div>
+        <div style="font-size:18px;font-weight:700;color:var(--azul)">${fmtEUR(ticketPessoa)}</div>
+      </div>
+      <div style="border:1px solid var(--cinza);border-radius:8px;padding:12px">
+        <div style="font-size:11px;color:var(--cinza-escuro);margin-bottom:4px">💰 Receita Total Conf.</div>
+        <div style="font-size:16px;font-weight:700;color:var(--verde)">${fmtEUR(receitaTotal)}</div>
+      </div>
+      <div style="border:1px solid var(--cinza);border-radius:8px;padding:12px">
+        <div style="font-size:11px;color:var(--cinza-escuro);margin-bottom:4px">👥 Média Pessoas/Evento</div>
+        <div style="font-size:18px;font-weight:700;color:var(--azul)">${mediasPessoas}</div>
+      </div>
+    </div>`;
 }
 
 // ORÇAMENTOS
 let _orcamentos_filtered = [];
-function renderOrc() { _orcamentos_filtered = [..._orcamentos]; renderOrcTable(); }
-function filterOrc() {
-  const q = document.getElementById('search-orc').value.toLowerCase();
-  _orcamentos_filtered = _orcamentos.filter(o =>
-    (o.cliente_nome||'').toLowerCase().includes(q) || String(o.numero).includes(q) || (o.status||'').toLowerCase().includes(q)
-  );
+let _orcActiveStatus = '';
+function setOrcTab(status) { _orcActiveStatus = status; renderOrc(); }
+function renderOrc() {
+  const statuses = ['', ...[...new Set(_orcamentos.map(o=>o.status).filter(Boolean))]];
+  const tabs = document.getElementById('orc-status-tabs');
+  if (tabs) {
+    tabs.innerHTML = statuses.map(s => {
+      const lbl = s || 'Todos';
+      const cnt = s ? _orcamentos.filter(o=>o.status===s).length : _orcamentos.length;
+      const act = _orcActiveStatus === s;
+      return `<button onclick="setOrcTab('${s}')" style="padding:5px 14px;border-radius:20px;border:1.5px solid ${act?'var(--verde)':'var(--cinza-medio)'};background:${act?'var(--verde)':'#fff'};color:${act?'#fff':'var(--texto)'};font-size:12px;font-weight:600;cursor:pointer">${lbl} <span style="opacity:0.7">(${cnt})</span></button>`;
+    }).join('');
+  }
+  applyOrcFilters();
+}
+function filterOrc() { applyOrcFilters(); }
+function applyOrcFilters() {
+  const q = (document.getElementById('search-orc')?.value||'').toLowerCase();
+  _orcamentos_filtered = _orcamentos.filter(o => {
+    const ms = !_orcActiveStatus || o.status===_orcActiveStatus;
+    const mq = !q || (o.cliente_nome||'').toLowerCase().includes(q) || String(o.numero).includes(q) || (o.status||'').toLowerCase().includes(q);
+    return ms && mq;
+  });
   renderOrcTable();
 }
 function renderOrcTable() {
   const wrap = document.getElementById('tbl-orc-wrap');
   if (!_orcamentos_filtered.length) {
-    wrap.innerHTML = '<div class="empty-state"><div class="big">📋</div><p>Nenhum orçamento encontrado</p></div>'; return;
+    wrap.innerHTML = '<div class="empty-state"><div class="big">📋</div><p>Nenhum orçamento encontrado</p></div>';
+  } else {
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Nº</th><th>Cliente</th><th>Data Evento</th><th>Pessoas</th><th>Status</th><th>Preço Final</th><th>Margem</th><th>Ações</th></tr></thead>
+      <tbody>${_orcamentos_filtered.map(o=>`
+        <tr>
+          <td><strong>#${String(o.numero).padStart(3,'0')}</strong></td>
+          <td>${o.cliente_nome||'—'}</td>
+          <td>${fmtDate(o.data_evento)}</td>
+          <td>${o.num_pessoas||0}</td>
+          <td><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span></td>
+          <td><strong style="color:var(--verde)">${fmtEUR(o.preco_final||o.total)}</strong></td>
+          <td><span style="color:var(--ouro);font-size:12px">${o.margem_percent||0}%</span></td>
+          <td>
+            <button class="btn btn-outline btn-sm" onclick="viewOrc('${o.id}')">👁 Ver</button>
+            <button class="btn btn-outline btn-sm" onclick="editOrc('${o.id}')">✏️ Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button>
+          </td>
+        </tr>`).join('')}
+      </tbody></table>`;
   }
-  wrap.innerHTML = `<table>
-    <thead><tr><th>Nº</th><th>Cliente</th><th>Data Evento</th><th>Pessoas</th><th>Status</th><th>Preço Final</th><th>Margem</th><th>Ações</th></tr></thead>
-    <tbody>${_orcamentos_filtered.map(o=>`
-      <tr>
-        <td><strong>#${String(o.numero).padStart(3,'0')}</strong></td>
-        <td>${o.cliente_nome||'—'}</td>
-        <td>${fmtDate(o.data_evento)}</td>
-        <td>${o.num_pessoas||0}</td>
-        <td><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span></td>
-        <td><strong style="color:var(--verde)">${fmtEUR(o.preco_final||o.total)}</strong></td>
-        <td><span style="color:var(--ouro);font-size:12px">${o.margem_percent||0}%</span></td>
-        <td>
-          <button class="btn btn-outline btn-sm" onclick="viewOrc('${o.id}')">👁 Ver</button>
-          <button class="btn btn-outline btn-sm" onclick="editOrc('${o.id}')">✏️ Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button>
-        </td>
-      </tr>`).join('')}
-    </tbody></table>`;
+  const bar = document.getElementById('orc-totais-bar');
+  if (bar) {
+    const tot = _orcamentos_filtered.reduce((s,o)=>s+Number(o.preco_final||o.total||0),0);
+    const conf = _orcamentos_filtered.filter(o=>o.status==='Confirmado').reduce((s,o)=>s+Number(o.preco_final||o.total||0),0);
+    const pend = _orcamentos_filtered.filter(o=>o.status==='Pendente').length;
+    const conc = _orcamentos_filtered.filter(o=>o.status==='Concluído'||o.status==='Concluido').length;
+    bar.innerHTML = `<span>📊 <strong>${_orcamentos_filtered.length}</strong> orçamento${_orcamentos_filtered.length!==1?'s':''}</span><span>💰 Total: <strong style="color:var(--verde-claro)">${fmtEUR(tot)}</strong></span><span>✅ Confirmados: <strong style="color:var(--sucesso)">${fmtEUR(conf)}</strong></span><span>⏳ Pendentes: <strong style="color:var(--aviso)">${pend}</strong></span><span>🏁 Concluídos: <strong>${conc}</strong></span>`;
+  }
 }
 
 async function delOrc(id) {
@@ -776,8 +965,10 @@ function initOrcForm(orc=null) {
   document.getElementById('orc-obs').value = orc ? orc.notas||'' : '';
 
   // Set sliders from saved values
+  const margemSaved = orc ? (orc.margem_percent||30) : 30;
   document.getElementById('sl-quebras').value = orc ? (orc.quebras_percent||5) : 5;
-  document.getElementById('sl-margem').value = orc ? (orc.margem_percent||30) : 30;
+  document.getElementById('sl-margem').value = Math.min(margemSaved, 500);
+  document.getElementById('sl-margem-val').value = margemSaved;
   document.getElementById('sl-sinal').value = orc ? (orc.sinal_percent||30) : 30;
 
   // Populate datalist for client autocomplete
@@ -824,7 +1015,11 @@ function initOrcForm(orc=null) {
   } else {
     _orcFormItens = [];
   }
+  // Reset labor quantities to default (qtd_tipica)
+  _orcMaoObraQtd = {};
+  _maoObraProfis.forEach(p => { _orcMaoObraQtd[p.id] = p.qtd_tipica || 0; });
   renderOrcItens();
+  renderOrcMaoObra();
   updatePricing();
 }
 
@@ -848,7 +1043,7 @@ function renderOrcItens() {
   const empty = document.getElementById('orc-itens-empty');
   if (!_orcFormItens.length) {
     tbody.innerHTML=''; empty.style.display='block';
-    document.getElementById('orc-total-disp').textContent='€ 0,00'; return;
+    document.getElementById('orc-total-disp').textContent=fmtEUR(0); return;
   }
   empty.style.display='none';
   tbody.innerHTML = _orcFormItens.map((it,i)=>`
@@ -870,20 +1065,57 @@ function updateQtd(idx, val) {
   renderOrcItens(); updatePricing();
 }
 
+function calcMoTotal() {
+  return Object.entries(_orcMaoObraQtd).reduce((acc, [profId, qty]) => {
+    const prof = _maoObraProfis.find(p => p.id === profId);
+    return acc + (prof ? (Number(prof.preco_evento)||0) * (qty||0) : 0);
+  }, 0);
+}
+
+function renderOrcMaoObra() {
+  const container = document.getElementById('orc-mao-obra-list');
+  if (!container) return;
+  const grupos = ['Salão', 'Cozinha', 'Logística'];
+  let html = '';
+  grupos.forEach(g => {
+    const profis = _maoObraProfis.filter(p => p.grupo === g);
+    if (!profis.length) return;
+    html += `<div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--cinza-escuro);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--cinza)">${g === 'Salão' ? '🍽️' : g === 'Cozinha' ? '👨‍🍳' : '🚛'} ${g}</div>`;
+    profis.forEach(p => {
+      const qty = _orcMaoObraQtd[p.id] !== undefined ? _orcMaoObraQtd[p.id] : (p.qtd_tipica||0);
+      html += `<div style="display:grid;grid-template-columns:1fr 90px 130px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--cinza)">
+        <span style="font-size:13.5px">${p.nome}</span>
+        <input type="number" min="0" value="${qty}" style="padding:5px 8px;border:1px solid var(--cinza-medio);border-radius:6px;font-size:13px;text-align:center"
+          onchange="_orcMaoObraQtd['${p.id}']=parseInt(this.value)||0;updatePricing()" placeholder="Qtd">
+        <span style="font-size:12px;color:var(--cinza-escuro)">${fmtEUR(Number(p.preco_evento)||0)} × qtd = <strong>${fmtEUR((Number(p.preco_evento)||0)*(qty||0))}</strong></span>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  if (!html) html = `<div style="color:var(--cinza-escuro);font-size:13px;padding:10px 0">Nenhum profissional cadastrado. <button class="btn btn-outline btn-sm" onclick="nav('mao-obra')">Cadastrar agora</button></div>`;
+  container.innerHTML = html;
+  const moTotal = calcMoTotal();
+  const moDisp = document.getElementById('orc-mo-total-disp');
+  if (moDisp) moDisp.textContent = fmtEUR(moTotal);
+}
+
 function updatePricing() {
   const quebrasP = parseFloat(document.getElementById('sl-quebras').value)||0;
-  const margemP = parseFloat(document.getElementById('sl-margem').value)||0;
+  const margemP = parseFloat(document.getElementById('sl-margem-val').value)||0;
   const sinalP = parseFloat(document.getElementById('sl-sinal').value)||0;
   document.getElementById('sl-quebras-val').textContent = quebrasP;
-  document.getElementById('sl-margem-val').textContent = margemP;
+  // sync range slider with typed value (capped at 500 for slider)
+  document.getElementById('sl-margem').value = Math.min(margemP, 500);
   document.getElementById('sl-sinal-val').textContent = sinalP;
 
   const custo = _orcFormItens.reduce((a,i)=>a+i.sub, 0);
+  const moTotal = calcMoTotal();
   const taxa = parseFloat(document.getElementById('orc-taxa').value)||0;
   const pessoas = parseInt(document.getElementById('orc-pessoas').value)||1;
 
   const quebrasEur = custo * (quebrasP/100);
-  const custoTotal = custo + quebrasEur;
+  const custoTotal = custo + quebrasEur + moTotal;
   const margemEur = custoTotal * (margemP/100);
   const precoSemTaxa = custoTotal + margemEur;
   const precoFinal = precoSemTaxa + taxa;
@@ -892,6 +1124,7 @@ function updatePricing() {
 
   document.getElementById('prev-custo').textContent = fmtEUR(custo);
   document.getElementById('prev-quebras').textContent = fmtEUR(quebrasEur);
+  document.getElementById('prev-mao-obra').textContent = fmtEUR(moTotal);
   document.getElementById('prev-custo-total').textContent = fmtEUR(custoTotal);
   document.getElementById('prev-margem').textContent = fmtEUR(margemEur);
   document.getElementById('prev-taxa').textContent = fmtEUR(taxa);
@@ -910,12 +1143,13 @@ async function saveOrc(doPrint=false) {
   const cliId = matched ? matched.id : null;
 
   const quebrasP = parseFloat(document.getElementById('sl-quebras').value)||0;
-  const margemP = parseFloat(document.getElementById('sl-margem').value)||0;
+  const margemP = parseFloat(document.getElementById('sl-margem-val').value)||0;
   const sinalP = parseFloat(document.getElementById('sl-sinal').value)||0;
   const taxa = parseFloat(document.getElementById('orc-taxa').value)||0;
   const custo = _orcFormItens.reduce((a,i)=>a+i.sub, 0);
+  const moTotal = calcMoTotal();
   const quebrasEur = custo * (quebrasP/100);
-  const custoTotal = custo + quebrasEur;
+  const custoTotal = custo + quebrasEur + moTotal;
   const margemEur = custoTotal * (margemP/100);
   const precoFinal = custoTotal + margemEur + taxa;
   const editId = document.getElementById('orc-edit-id').value;
@@ -974,7 +1208,23 @@ function editOrc(id) {
 
 // CLIENTES
 let _clientes_filtered = [];
-function renderCli() { _clientes_filtered = [..._clientes]; renderCliTable(); }
+function renderCli() {
+  _clientes_filtered = [..._clientes];
+  const kpis = document.getElementById('cli-kpis');
+  if (kpis) {
+    const total = _clientes.length;
+    const comEvento = new Set(_orcamentos.map(o=>o.cliente_id).filter(Boolean)).size;
+    const receita = _orcamentos.filter(o=>o.status==='Confirmado'||o.status==='Concluído'||o.status==='Concluido').reduce((s,o)=>s+Number(o.preco_final||o.total||0),0);
+    const now = new Date(); const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const novos = _clientes.filter(c=>(c.created_at||'').startsWith(ym)).length;
+    kpis.innerHTML = `
+      <div class="kpi-card verde"><div class="kpi-label">Total Clientes</div><div class="kpi-val">${total}</div><div class="kpi-sub">Todos os registados</div></div>
+      <div class="kpi-card"><div class="kpi-label">Com Eventos</div><div class="kpi-val">${comEvento}</div><div class="kpi-sub">Com orçamentos</div></div>
+      <div class="kpi-card aviso"><div class="kpi-label">Novos este Mês</div><div class="kpi-val">${novos}</div><div class="kpi-sub">Adicionados recentemente</div></div>
+      <div class="kpi-card"><div class="kpi-label">Receita (Confirm.)</div><div class="kpi-val" style="font-size:22px">${fmtEUR(receita)}</div><div class="kpi-sub">Confirmados + Concluídos</div></div>`;
+  }
+  renderCliTable();
+}
 function filterCli() {
   const q = document.getElementById('search-cli').value.toLowerCase();
   _clientes_filtered = _clientes.filter(c =>
@@ -984,22 +1234,30 @@ function filterCli() {
 }
 function renderCliTable() {
   const wrap = document.getElementById('tbl-cli-wrap');
+  const cnt = document.getElementById('cli-count');
+  if (cnt) cnt.textContent = `${_clientes_filtered.length} cliente${_clientes_filtered.length!==1?'s':''}`;
   if (!_clientes_filtered.length) {
     wrap.innerHTML = '<div class="empty-state"><div class="big">👥</div><p>Nenhum cliente registado</p></div>'; return;
   }
   wrap.innerHTML = `<table>
-    <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Morada</th><th>Ações</th></tr></thead>
-    <tbody>${_clientes_filtered.map(c=>`
-      <tr>
-        <td><strong>${c.nome}</strong></td>
+    <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Eventos</th><th>Último Evento</th><th>Total Gasto</th><th>Ações</th></tr></thead>
+    <tbody>${_clientes_filtered.map(c=>{
+      const orcs = _orcamentos.filter(o=>o.cliente_id===c.id||o.cliente_nome===c.nome);
+      const tot = orcs.reduce((s,o)=>s+Number(o.preco_final||o.total||0),0);
+      const last = [...orcs].sort((a,b)=>new Date(b.data_evento||0)-new Date(a.data_evento||0))[0];
+      return `<tr>
+        <td><strong>${c.nome}</strong><div style="font-size:11px;color:var(--cinza-escuro)">${c.morada||''}</div></td>
         <td>${c.email||'—'}</td>
         <td>${c.telefone||'—'}</td>
-        <td>${c.morada||'—'}</td>
+        <td><span style="font-weight:700;color:var(--verde)">${orcs.length}</span></td>
+        <td>${last?fmtDate(last.data_evento):'—'}</td>
+        <td><strong style="color:var(--verde)">${tot>0?fmtEUR(tot):'—'}</strong></td>
         <td>
           <button class="btn btn-outline btn-sm" onclick="editCli('${c.id}')">✏️ Editar</button>
           <button class="btn btn-danger btn-sm" onclick="delCli('${c.id}')">🗑</button>
         </td>
-      </tr>`).join('')}
+      </tr>`;
+    }).join('')}
     </tbody></table>`;
 }
 
@@ -1161,13 +1419,16 @@ function renderMaoObra() {
         <span style="font-size:13px;color:var(--cinza-escuro)">${profis.length} profissional(is)</span>
       </div>
       <table class="mo-table">
-        <thead><tr><th>Profissional</th><th>Preço / Evento (€)</th><th>Último Pag.</th><th>Ações</th></tr></thead>
+        <thead><tr><th>Profissional</th><th>Preço / Evento (R$)</th><th>Qtd típica/evento</th><th>Custo total</th><th>Último Pag.</th><th>Ações</th></tr></thead>
         <tbody>${profis.map(p => {
           const pags = _maoObraPagamentos.filter(pg=>pg.profissional_id===p.id);
           const ultPag = pags.length ? pags[0] : null;
+          const qtdT = p.qtd_tipica||1;
           return `<tr>
             <td><strong>${p.nome}</strong></td>
             <td><input type="number" id="prof-preco-${p.id}" value="${p.preco_evento||0}" min="0" step="0.01" style="width:110px;padding:5px 8px;border:1px solid var(--cinza-medio);border-radius:6px;font-size:13px"></td>
+            <td><input type="number" id="prof-qtd-${p.id}" value="${qtdT}" min="1" step="1" style="width:70px;padding:5px 8px;border:1px solid var(--cinza-medio);border-radius:6px;font-size:13px;text-align:center"></td>
+            <td style="font-weight:700;color:var(--verde)">${fmtEUR((p.preco_evento||0)*qtdT)}</td>
             <td>${ultPag ? `${fmtDate(ultPag.data_pagamento)} · <strong>${fmtEUR(ultPag.valor)}</strong><br><span style="font-size:11px;color:var(--cinza-escuro)">${ultPag.evento_ref||''}</span>` : '<span style="color:var(--cinza-escuro);font-size:12px">Sem pagamentos</span>'}</td>
             <td>
               <button class="btn btn-outline btn-sm" onclick="openPagModal('${p.id}','${p.nome.replace(/'/g,"\\'")}')">📜 Histórico</button>
@@ -1206,8 +1467,9 @@ async function saveAllProfPrecos() {
   try {
     const updates = _maoObraProfis.map(p => {
       const el = document.getElementById('prof-preco-'+p.id);
+      const elQ = document.getElementById('prof-qtd-'+p.id);
       if (!el) return null;
-      return sb.from('mao_obra_profissionais').update({preco_evento: parseFloat(el.value)||0}).eq('id', p.id);
+      return sb.from('mao_obra_profissionais').update({preco_evento: parseFloat(el.value)||0, qtd_tipica: parseInt(elQ?.value)||1}).eq('id', p.id);
     }).filter(Boolean);
     await Promise.all(updates);
     await loadAll(); toast('Preços atualizados!');
