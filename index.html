@@ -142,50 +142,84 @@
   #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
   #sidebar-overlay.visible { display: block; }
   .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px 8px; color: var(--verde); font-size: 26px; line-height: 1; flex-shrink: 0; }
+  /* Bottom navigation bar (mobile only) */
+  #bottom-nav { display: none; }
   @media (max-width: 768px) {
+    body { overflow-x: hidden; }
     #sidebar { transform: translateX(-260px); transition: transform 0.25s ease; z-index: 200; width: 240px; }
     #sidebar.open { transform: translateX(0); }
-    #main { margin-left: 0; }
-    .hamburger { display: flex; align-items: center; justify-content: center; }
-    .topbar { padding: 12px 16px; gap: 10px; }
-    .topbar h2 { font-size: 17px; }
-    .topbar .sub { font-size: 12px; }
+    #main { margin-left: 0; padding-bottom: 66px; }
+    .hamburger { display: none !important; }
+    /* Bottom nav bar */
+    #bottom-nav {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+      background: var(--verde); border-top: 2px solid var(--ouro);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.25);
+      height: 62px; align-items: stretch;
+    }
+    #bottom-nav button {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.65);
+      font-size: 10px; font-weight: 600; gap: 3px; padding: 6px 2px; transition: all 0.15s;
+      border-top: 3px solid transparent;
+    }
+    #bottom-nav button .bn-icon { font-size: 20px; line-height: 1; }
+    #bottom-nav button.active { color: var(--ouro-claro); border-top-color: var(--ouro); background: rgba(201,168,76,0.12); }
+    #bottom-nav button:active { background: rgba(255,255,255,0.1); }
+    .topbar { padding: 10px 14px; gap: 8px; }
+    .topbar h2 { font-size: 16px; }
+    .topbar .sub { font-size: 11px; }
     .topbar-actions { flex-wrap: wrap; gap: 6px; }
-    .content { padding: 14px 12px; }
-    .grid2, .grid3 { grid-template-columns: 1fr; gap: 14px; }
-    .pricing-layout { grid-template-columns: 1fr; gap: 14px; }
-    .form-grid { grid-template-columns: 1fr; gap: 12px; }
+    .content { padding: 12px 10px; }
+    .grid2, .grid3 { grid-template-columns: 1fr; gap: 12px; }
+    .pricing-layout { grid-template-columns: 1fr; gap: 12px; }
+    .form-grid { grid-template-columns: 1fr; gap: 10px; }
     .form-group.span2 { grid-column: span 1; }
-    .kpi-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .kpi-card { padding: 16px 18px; }
-    .kpi-card .kpi-val { font-size: 26px; }
-    .panel-header { padding: 14px 16px; flex-wrap: wrap; gap: 8px; }
-    .panel-body { padding: 14px 16px; overflow-x: auto; }
-    table { font-size: 12.5px; min-width: 520px; }
-    th, td { padding: 9px 10px; }
-    .orc-itens-table { min-width: 400px; font-size: 12px; }
-    .orc-itens-table th, .orc-itens-table td { padding: 6px 8px; }
-    .orc-itens-table input[type=number] { width: 56px; }
-    .ingr-row { grid-template-columns: 1fr 72px 60px 28px; gap: 5px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    .kpi-card { padding: 14px 14px; }
+    .kpi-card .kpi-val { font-size: 24px; }
+    .kpi-card .kpi-label { font-size: 11px; }
+    .panel-header { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+    .panel-body { padding: 10px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .panel-body table { font-size: 12px; min-width: 480px; }
+    table { font-size: 12px; min-width: 480px; }
+    th, td { padding: 8px 10px; }
+    /* Wrapper for scrollable tables */
+    .tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+    .orc-itens-table { min-width: 380px; font-size: 12px; }
+    .orc-itens-table th, .orc-itens-table td { padding: 6px 7px; }
+    .orc-itens-table input[type=number] { width: 52px; }
+    .ingr-row { grid-template-columns: 1fr 68px 56px 28px; gap: 4px; }
     .search-bar { width: 100%; max-width: 100%; }
-    .modal { padding: 20px 16px; }
+    .modal { padding: 18px 14px; max-height: 92vh; }
     .modal .form-grid { grid-template-columns: 1fr; }
     .btn { padding: 8px 14px; font-size: 13px; }
-    .btn-sm { padding: 5px 10px; font-size: 12px; }
-    .total-bar { padding: 10px 16px; border-radius: 0 0 10px 10px; }
-    .total-bar .total-val { font-size: 20px; }
+    .btn-sm { padding: 5px 9px; font-size: 12px; }
+    .total-bar { padding: 10px 14px; border-radius: 0 0 10px 10px; }
+    .total-bar .total-val { font-size: 19px; }
     .share-row { flex-direction: column; }
-    .mo-table { overflow-x: auto; }
-    .mo-table table { min-width: 340px; }
+    .mo-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .mo-table table { min-width: 320px; }
     .cardapio-grid { grid-template-columns: 1fr; }
     .ficha-header { flex-direction: column; gap: 8px; align-items: flex-start; }
-    .tag-group { gap: 6px; }
-    .tag { padding: 5px 10px; font-size: 12px; }
-    .toast { bottom: 16px; right: 12px; left: 12px; text-align: center; }
+    .tag-group { gap: 5px; }
+    .tag { padding: 5px 9px; font-size: 12px; }
+    .toast { bottom: 72px; right: 12px; left: 12px; text-align: center; }
     .form-actions { flex-direction: column; }
     .form-actions .btn { justify-content: center; }
     .detail-row { flex-direction: column; gap: 2px; }
     .detail-row strong { min-width: unset; }
+    /* Fix inline grids inside viewOrc */
+    [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns:repeat(3"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns: repeat(3"] { grid-template-columns: 1fr !important; }
+    /* Prevent inner content from overflowing */
+    .section { overflow-x: hidden; }
+    .modal-content-inner { overflow-x: auto; }
+    /* Table wrappers */
+    #tbl-orc-wrap, #tbl-cli-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+    #tbl-orc-wrap table, #tbl-cli-wrap table { min-width: 520px; }
   }
   /* Print */
   #print-area { display: none; }
@@ -215,6 +249,26 @@
 <div id="loader" class="loader"><div class="spin"></div><p>A carregar dados...</p></div>
 <div id="toast" class="toast"></div>
 <div id="print-area"></div>
+
+<!-- Bottom navigation bar (mobile) -->
+<nav id="bottom-nav" aria-label="Navegação principal">
+  <button onclick="nav('dashboard')" class="active" id="bn-dashboard">
+    <span class="bn-icon">📊</span>Dashboard
+  </button>
+  <button onclick="nav('orcamentos')" id="bn-orcamentos">
+    <span class="bn-icon">📋</span>Eventos
+  </button>
+  <button onclick="nav('novo-orc')" id="bn-novo-orc" style="position:relative">
+    <span class="bn-icon" style="background:var(--ouro);color:var(--verde);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-10px;box-shadow:0 3px 10px rgba(0,0,0,0.3)">＋</span>
+    <span style="margin-top:2px">Novo</span>
+  </button>
+  <button onclick="nav('clientes')" id="bn-clientes">
+    <span class="bn-icon">👥</span>Clientes
+  </button>
+  <button onclick="showBottomMore()" id="bn-mais">
+    <span class="bn-icon">☰</span>Mais
+  </button>
+</nav>
 
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
@@ -654,11 +708,11 @@ function closeSidebar() {
 
 function nav(sec) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#sidebar nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-' + sec).classList.add('active');
   const navSecs = ['dashboard','orcamentos','novo-orc','clientes','cardapio','fichas','mao-obra'];
   const idx = navSecs.indexOf(sec);
-  if (idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
+  if (idx >= 0) document.querySelectorAll('#sidebar nav button')[idx].classList.add('active');
   _curSection = sec;
   if (sec === 'dashboard') renderDash();
   if (sec === 'orcamentos') renderOrc();
@@ -667,8 +721,21 @@ function nav(sec) {
   if (sec === 'fichas') renderFichas();
   if (sec === 'novo-orc') initOrcForm();
   if (sec === 'mao-obra') renderMaoObra();
+  // Update bottom nav active state
+  const bnMap = {'dashboard':'bn-dashboard','orcamentos':'bn-orcamentos','novo-orc':'bn-novo-orc','clientes':'bn-clientes'};
+  document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('active'));
+  if (bnMap[sec]) { const btn = document.getElementById(bnMap[sec]); if(btn) btn.classList.add('active'); }
+  else { const mais = document.getElementById('bn-mais'); if(mais) mais.classList.add('active'); }
   // Close sidebar on mobile after navigating
   if (window.innerWidth <= 768) closeSidebar();
+}
+
+function showBottomMore() {
+  // Open sidebar as "Mais" menu on mobile
+  const sb2 = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sb2.classList.add('open');
+  overlay.classList.add('visible');
 }
 
 // Load all data
