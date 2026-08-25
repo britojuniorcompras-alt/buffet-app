@@ -396,7 +396,7 @@
               <div class="prev-row"><span>+ Margem de lucro</span><strong id="prev-margem">R$ 0,00</strong></div>
               <div class="prev-row"><span>+ Taxa de serviço</span><strong id="prev-taxa">R$ 0,00</strong></div>
               <div class="prev-row highlight"><span>💰 Preço Final</span><span id="prev-final">R$ 0,00</span></div>
-              <div class="prev-row"><span>Valor por pessoa</span><strong id="prev-pax">R$ 0,00</strong></div>
+              <div class="prev-row"><span>Valor por pessoa <span style="font-size:11px;color:var(--cinza-escuro);font-weight:400">(editável)</span></span><span style="display:flex;align-items:center;gap:4px;font-weight:700;color:var(--verde)">R$&nbsp;<input type="number" id="pax-input" min="0" step="0.01" placeholder="0.00" oninput="updateFromPax()" style="width:90px;padding:2px 6px;border:1px solid var(--cinza-medio);border-radius:5px;font-size:14px;font-weight:700;color:var(--verde);background:transparent;text-align:right"></span></div>
               <div class="prev-row aviso-row"><span>🤝 Sinal de entrada</span><strong id="prev-sinal">R$ 0,00</strong></div>
             </div>
           </div>
@@ -1082,6 +1082,9 @@ function initOrcForm(orc=null) {
   // Reset labor quantities to 0 — user fills in per event
   _orcMaoObraQtd = {};
   _maoObraProfis.forEach(p => { _orcMaoObraQtd[p.id] = 0; });
+  // Reset pax input
+  const paxEl = document.getElementById('pax-input');
+  if (paxEl) paxEl.value = '';
   renderOrcItens();
   renderOrcMaoObra();
   updatePricing();
@@ -1164,6 +1167,34 @@ function renderOrcMaoObra() {
   if (moDisp) moDisp.textContent = fmtEUR(moTotal);
 }
 
+let _paxUserEditing = false;
+
+function updateFromPax() {
+  // User typed a price-per-person → back-calculate margem %
+  _paxUserEditing = true;
+  const paxInput = document.getElementById('pax-input');
+  const pax = parseFloat(paxInput.value)||0;
+  const pessoas = parseInt(document.getElementById('orc-pessoas').value)||1;
+  const taxa = parseFloat(document.getElementById('orc-taxa').value)||0;
+  const quebrasP = parseFloat(document.getElementById('sl-quebras').value)||0;
+  const custo = _orcFormItens.reduce((a,i)=>a+i.sub, 0);
+  const moTotal = calcMoTotal();
+  const quebrasEur = custo * (quebrasP/100);
+  const custoTotal = custo + quebrasEur + moTotal;
+
+  const precoFinal = pax * pessoas;
+  let margemP = 0;
+  if (custoTotal > 0) {
+    const margemEur = precoFinal - custoTotal - taxa;
+    margemP = Math.max(0, (margemEur / custoTotal) * 100);
+  }
+  margemP = Math.round(margemP * 10) / 10; // 1 decimal
+  document.getElementById('sl-margem-val').value = margemP;
+  document.getElementById('sl-margem').value = Math.min(margemP, 500);
+  updatePricing();
+  _paxUserEditing = false;
+}
+
 function updatePricing() {
   const quebrasP = parseFloat(document.getElementById('sl-quebras').value)||0;
   const margemP = parseFloat(document.getElementById('sl-margem-val').value)||0;
@@ -1193,7 +1224,13 @@ function updatePricing() {
   document.getElementById('prev-margem').textContent = fmtEUR(margemEur);
   document.getElementById('prev-taxa').textContent = fmtEUR(taxa);
   document.getElementById('prev-final').textContent = fmtEUR(precoFinal);
-  document.getElementById('prev-pax').textContent = fmtEUR(pax);
+  // Only update pax input when user is NOT editing it directly
+  if (!_paxUserEditing) {
+    const paxInput = document.getElementById('pax-input');
+    if (document.activeElement !== paxInput) {
+      paxInput.value = pessoas > 0 ? (Math.round(pax * 100) / 100) : 0;
+    }
+  }
   document.getElementById('prev-sinal').textContent = fmtEUR(sinalEur);
 }
 
