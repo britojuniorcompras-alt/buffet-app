@@ -1272,14 +1272,20 @@ async function saveOrc(doPrint=false) {
   let cliId = matched ? matched.id : null;
   // Auto-cadastrar cliente se for novo
   if (!matched) {
-    try {
-      const newCli = await sb.from('clientes').insert({ nome: cliNome }).select().single();
-      if (newCli.data) {
-        cliId = newCli.data.id;
-        _clientes.push(newCli.data);
-        toast(`✅ Cliente "${cliNome}" cadastrado automaticamente!`);
+    const newCli = await sb.from('clientes').insert({ nome: cliNome }).select().single();
+    if (newCli.error) {
+      // Pode já existir com capitalização diferente — tenta buscar
+      const existing = await sb.from('clientes').select('*').ilike('nome', cliNome).maybeSingle();
+      if (existing.data) {
+        cliId = existing.data.id;
+        if (!_clientes.find(x=>x.id===cliId)) _clientes.push(existing.data);
+      } else {
+        toast(`⚠️ Não foi possível registar o cliente automaticamente: ${newCli.error.message}`, true);
       }
-    } catch(e) { /* continua sem cliente_id se falhar */ }
+    } else if (newCli.data) {
+      cliId = newCli.data.id;
+      _clientes.push(newCli.data);
+    }
   }
 
   const quebrasP = parseFloat(document.getElementById('sl-quebras').value)||0;
