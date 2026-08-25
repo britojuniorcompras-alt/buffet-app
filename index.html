@@ -1107,9 +1107,10 @@ function initOrcForm(orc=null) {
   } else {
     _orcFormItens = [];
   }
-  // Reset labor quantities to 0 — user fills in per event
+  // Carregar ou zerar quantidades de mão de obra
   _orcMaoObraQtd = {};
-  _maoObraProfis.forEach(p => { _orcMaoObraQtd[p.id] = 0; });
+  const savedMo = (orc && orc.mao_obra_qtd) ? orc.mao_obra_qtd : {};
+  _maoObraProfis.forEach(p => { _orcMaoObraQtd[p.id] = savedMo[p.id] !== undefined ? savedMo[p.id] : 0; });
   // Reset pax input
   const paxEl = document.getElementById('pax-input');
   if (paxEl) paxEl.value = '';
@@ -1217,8 +1218,8 @@ function renderOrcMaoObra() {
       html += `<div style="display:grid;grid-template-columns:1fr 90px 130px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--cinza)">
         <span style="font-size:13.5px">${p.nome}</span>
         <input type="number" min="0" value="${qty}" style="padding:5px 8px;border:1px solid var(--cinza-medio);border-radius:6px;font-size:13px;text-align:center"
-          onchange="_orcMaoObraQtd['${p.id}']=parseInt(this.value)||0;updatePricing()" placeholder="Qtd">
-        <span style="font-size:12px;color:var(--cinza-escuro)">${fmtEUR(Number(p.preco_evento)||0)} × qtd = <strong>${fmtEUR((Number(p.preco_evento)||0)*(qty||0))}</strong></span>
+          onchange="_orcMaoObraQtd['${p.id}']=parseInt(this.value)||0;renderOrcMaoObra();updatePricing()" placeholder="Qtd">
+        <span style="font-size:12px;color:var(--cinza-escuro)" id="mo-sub-${p.id}">${fmtEUR(Number(p.preco_evento)||0)} × ${qty} = <strong>${fmtEUR((Number(p.preco_evento)||0)*(qty||0))}</strong></span>
       </div>`;
     });
     html += '</div>';
@@ -1347,7 +1348,8 @@ async function saveOrc(doPrint=false) {
       status: document.getElementById('orc-status').value,
       notas: document.getElementById('orc-obs').value,
       quebras_percent: quebrasP, margem_percent: margemP, sinal_percent: sinalP,
-      preco_final: precoFinal, total: precoFinal
+      preco_final: precoFinal, total: precoFinal,
+      mao_obra_qtd: _orcMaoObraQtd
     };
     if (editId) {
       await sb.from('orcamentos').update(orcData).eq('id', editId);
