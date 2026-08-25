@@ -926,6 +926,24 @@ function viewOrc(id) {
   const sinalEur = precoFinal * (Number(o.sinal_percent||0)/100);
   const pax = o.num_pessoas > 0 ? precoFinal / o.num_pessoas : 0;
 
+  // Mão de obra salva no orçamento
+  const moQtd = o.mao_obra_qtd || {};
+  const moAtivos = _maoObraProfis.filter(p => (moQtd[p.id]||0) > 0);
+  const moTotal = moAtivos.reduce((acc,p) => acc + (moQtd[p.id]||0) * Number(p.preco_evento||0), 0);
+  const moHtml = moAtivos.length ? `
+    <div style="margin-top:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--verde);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--cinza)">👷 Mão de Obra</div>
+      <table class="orc-itens-table">
+        <thead><tr><th>Profissional</th><th>Grupo</th><th>Qtd</th><th>Valor/evento</th><th>Subtotal</th></tr></thead>
+        <tbody>${moAtivos.map(p=>{
+          const qty = moQtd[p.id]||0;
+          const sub = qty * Number(p.preco_evento||0);
+          return `<tr><td>${p.nome}</td><td><span class="badge-cat">${p.grupo||'—'}</span></td><td>${qty}</td><td>${fmtEUR(Number(p.preco_evento||0))}</td><td><strong>${fmtEUR(sub)}</strong></td></tr>`;
+        }).join('')}</tbody>
+      </table>
+      <div style="text-align:right;margin-top:6px;font-size:13px">Total mão de obra: <strong style="color:var(--verde)">${fmtEUR(moTotal)}</strong></div>
+    </div>` : '';
+
   document.getElementById('view-orc-title').textContent = `Orçamento #${String(o.numero).padStart(3,'0')} — ${o.cliente_nome||'—'}`;
   document.getElementById('view-orc-content').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
@@ -935,10 +953,12 @@ function viewOrc(id) {
       <div class="detail-row"><strong>Status</strong><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span></div>
     </div>
     ${o.notas ? `<div style="background:var(--cinza);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px">${o.notas}</div>` : ''}
+    <div style="font-size:13px;font-weight:700;color:var(--verde);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--cinza)">🍽️ Cardápio</div>
     <table class="orc-itens-table">
       <thead><tr><th>Prato</th><th>Categoria</th><th>Qtd</th><th>Unit.</th><th>Subtotal</th></tr></thead>
       <tbody>${itens.map(i=>`<tr><td>${i.nome_prato}</td><td>${i.categoria||'—'}</td><td>${i.quantidade}</td><td>${fmtEUR(i.preco_unit)}</td><td><strong>${fmtEUR(i.subtotal)}</strong></td></tr>`).join('')}</tbody>
     </table>
+    ${moHtml}
     <div style="background:var(--cinza);border-radius:8px;padding:14px 18px;margin-top:14px;font-size:13.5px">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
         <div><div style="color:var(--cinza-escuro);font-size:11px;text-transform:uppercase;font-weight:700">Quebras</div><div style="font-weight:700">${o.quebras_percent||0}%</div></div>
