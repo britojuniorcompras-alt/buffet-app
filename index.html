@@ -98,6 +98,7 @@
   .ingr-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
   .ingr-row { display: grid; grid-template-columns: 1fr 100px 80px 32px; gap: 8px; align-items: center; }
   .ingr-row input { padding: 5px 8px; border: 1px solid var(--cinza-medio); border-radius: 6px; font-size: 12.5px; }
+  .ingr-header { font-size: 11px; font-weight: 700; color: var(--cinza-escuro); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
   .tag-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
   .tag { padding: 5px 12px; border-radius: 20px; border: 1.5px solid var(--cinza-medio); background: #fff; cursor: pointer; font-size: 12.5px; font-weight: 500; transition: all 0.15s; }
   .tag.active { background: var(--verde); color: #fff; border-color: var(--verde); }
@@ -946,7 +947,7 @@ function renderOrcTable() {
   if (!_orcamentos_filtered.length) {
     wrap.innerHTML = '<div class="empty-state"><div class="big">📋</div><p>Nenhum orçamento encontrado</p></div>';
   } else {
-    wrap.innerHTML = `<table>
+    wrap.innerHTML = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="min-width:600px;width:100%">
       <thead><tr><th>Nº</th><th>Cliente</th><th>Data Evento</th><th>Pessoas</th><th>Status</th><th>Preço Final</th><th>Margem</th><th>Ações</th></tr></thead>
       <tbody>${_orcamentos_filtered.map(o=>`
         <tr>
@@ -963,7 +964,7 @@ function renderOrcTable() {
             <button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button>
           </td>
         </tr>`).join('')}
-      </tbody></table>`;
+      </tbody></table></div>`;
   }
   const bar = document.getElementById('orc-totais-bar');
   if (bar) {
@@ -1509,7 +1510,7 @@ function renderCliTable() {
   if (!_clientes_filtered.length) {
     wrap.innerHTML = '<div class="empty-state"><div class="big">👥</div><p>Nenhum cliente registado</p></div>'; return;
   }
-  wrap.innerHTML = `<table>
+  wrap.innerHTML = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="min-width:580px;width:100%">
     <thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Eventos</th><th>Último Evento</th><th>Total Gasto</th><th>Ações</th></tr></thead>
     <tbody>${_clientes_filtered.map(c=>{
       const orcs = _orcamentos.filter(o=>o.cliente_id===c.id||o.cliente_nome===c.nome);
@@ -1529,7 +1530,7 @@ function renderCliTable() {
         </td>
       </tr>`;
     }).join('')}
-    </tbody></table>`;
+    </tbody></table></div>`;
 }
 
 function openClienteModal(cli=null) {
@@ -1676,8 +1677,8 @@ function renderFichas() {
         <button class="btn btn-primary btn-sm" onclick="saveIngrs('${p.id}')">💾 Guardar</button>
       </div>
       <div style="font-size:12px;font-weight:700;color:var(--cinza-escuro);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Ingredientes</div>
-      <div style="display:grid;grid-template-columns:1fr 100px 80px 32px;gap:6px;margin-bottom:6px;font-size:11px;font-weight:700;color:var(--cinza-escuro)">
-        <span>INGREDIENTE</span><span>QUANTIDADE</span><span>UNIDADE</span><span></span>
+      <div class="ingr-row ingr-header">
+        <span>INGREDIENTE</span><span>QTD</span><span>UNID.</span><span></span>
       </div>
       <ul class="ingr-list" id="ingr-${p.id}">
         ${ingrs.map((ing,i)=>`
@@ -1734,7 +1735,7 @@ function renderMaoObra() {
         <span>${g === 'Salão' ? '🍽️' : g === 'Cozinha' ? '👨‍🍳' : '🚛'} ${g}</span>
         <span style="font-size:13px;color:var(--cinza-escuro)">${profis.length} profissional(is)</span>
       </div>
-      <table class="mo-table">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="min-width:560px;width:100%">
         <thead><tr><th>Profissional</th><th>Preço / Evento (R$)</th><th>Qtd típica/evento</th><th>Custo total</th><th>Último Pag.</th><th>Ações</th></tr></thead>
         <tbody>${profis.map(p => {
           const pags = _maoObraPagamentos.filter(pg=>pg.profissional_id===p.id);
@@ -1752,7 +1753,7 @@ function renderMaoObra() {
             </td>
           </tr>`;
         }).join('')}</tbody>
-      </table>
+      </table></div>
     </div>`;
   });
   document.getElementById('mo-profissionais').innerHTML = html || '<div class="empty-state"><div class="big">👷</div><p>Nenhum profissional cadastrado</p></div>';
@@ -1760,7 +1761,7 @@ function renderMaoObra() {
   // Resumo pagamentos recentes
   const recPags = [..._maoObraPagamentos].slice(0,10);
   if (recPags.length) {
-    document.getElementById('mo-pagamentos').innerHTML = `<table>
+    document.getElementById('mo-pagamentos').innerHTML = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="min-width:480px;width:100%">
       <thead><tr><th>Profissional</th><th>Data</th><th>Evento</th><th>Valor</th><th>Notas</th></tr></thead>
       <tbody>${recPags.map(pg=>{
         const prof = _maoObraProfis.find(p=>p.id===pg.profissional_id);
@@ -1772,7 +1773,7 @@ function renderMaoObra() {
           <td>${pg.notas||'—'}</td>
         </tr>`;
       }).join('')}</tbody>
-    </table>`;
+    </table></div>`;
   } else {
     document.getElementById('mo-pagamentos').innerHTML = '<div class="empty-state"><div class="big">📜</div><p>Nenhum pagamento registado ainda</p></div>';
   }
