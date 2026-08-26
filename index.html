@@ -10,7 +10,7 @@
   :root {
     --verde: #0b1c10; --verde-claro: #1a3320; --ouro: #c9a84c; --ouro-claro: #e8c97a;
     --branco: #f5f0e8; --cinza: rgba(255,255,255,0.06); --cinza-medio: rgba(255,255,255,0.14);
-    --cinza-escuro: rgba(245,240,232,0.5); --texto: #f5f0e8;
+    --cinza-escuro: rgba(245,240,232,0.65); --texto: #f5f0e8;
     --perigo: #e05252; --sucesso: #4ade80; --aviso: #fbbf24;
     --azul: #60a5fa; --azul-claro: rgba(96,165,250,0.15); --amarelo: #fbbf24; --vermelho: #e05252;
     --sombra: 0 4px 20px rgba(0,0,0,0.35); --sombra-forte: 0 8px 40px rgba(0,0,0,0.55);
@@ -55,7 +55,7 @@
   .btn-primary:hover { background: linear-gradient(135deg,#e8c97a,#c9a84c); }
   .btn-ouro { background: rgba(201,168,76,0.15); color: var(--ouro-claro); border: 1px solid rgba(201,168,76,0.3); }
   .btn-ouro:hover { background: rgba(201,168,76,0.25); }
-  .btn-outline { background: transparent; border: 1.5px solid rgba(255,255,255,0.18); color: rgba(245,240,232,0.75); }
+  .btn-outline { background: transparent; border: 1.5px solid rgba(255,255,255,0.18); color: rgba(245,240,232,0.85); }
   .btn-outline:hover { border-color: var(--ouro); color: var(--ouro-claro); }
   .btn-danger { background: var(--perigo); color: #fff; }
   .btn-success { background: var(--sucesso); color: #fff; }
@@ -80,6 +80,8 @@
   .form-group input, .form-group select, .form-group textarea { padding: 9px 12px; border: 1.5px solid rgba(255,255,255,0.14); border-radius: 8px; font-size: 13.5px; background: rgba(255,255,255,0.05); color: var(--texto); transition: border-color 0.15s; }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--ouro); background: rgba(255,255,255,0.08); }
   .form-group textarea { resize: vertical; min-height: 80px; }
+  .form-group input::placeholder, .form-group textarea::placeholder, .search-bar::placeholder { color: rgba(245,240,232,0.3); }
+  .form-group select option, select option { background: #0d2214; color: #f5f0e8; }
   .form-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
   .orc-itens-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
   .orc-itens-table th { background: rgba(255,255,255,0.05); padding: 8px 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: rgba(245,240,232,0.45); }
@@ -124,7 +126,7 @@
   .modal { background: #0d2214; border: 1px solid rgba(201,168,76,0.2); border-radius: 18px; padding: 28px 32px; max-width: 560px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; }
   .modal h3 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--ouro-claro); margin-bottom: 18px; letter-spacing: 0.2px; }
   .detail-row { display: flex; gap: 8px; margin-bottom: 8px; font-size: 13.5px; }
-  .detail-row strong { min-width: 130px; color: rgba(245,240,232,0.45); }
+  .detail-row strong { min-width: 130px; color: rgba(245,240,232,0.55); }
   /* Pricing panel */
   .pricing-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
   .slider-group { margin-bottom: 20px; }
@@ -144,7 +146,7 @@
   /* ===== RESPONSIVE MOBILE ===== */
   #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
   #sidebar-overlay.visible { display: block; }
-  .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px 8px; color: var(--verde); font-size: 26px; line-height: 1; flex-shrink: 0; }
+  .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px 8px; color: var(--ouro-claro); font-size: 26px; line-height: 1; flex-shrink: 0; }
   /* Bottom navigation bar (mobile only) */
   #bottom-nav { display: none; }
   @media (max-width: 768px) {
@@ -262,7 +264,7 @@
     <span class="bn-icon">📋</span>Eventos
   </button>
   <button onclick="nav('novo-orc')" id="bn-novo-orc" style="position:relative">
-    <span class="bn-icon" style="background:var(--ouro);color:var(--verde);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-10px;box-shadow:0 3px 10px rgba(0,0,0,0.3)">＋</span>
+    <span class="bn-icon" style="background:var(--ouro);color:#0b1c10;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-10px;box-shadow:0 3px 10px rgba(0,0,0,0.3)">＋</span>
     <span style="margin-top:2px">Novo</span>
   </button>
   <button onclick="nav('clientes')" id="bn-clientes">
@@ -418,7 +420,7 @@
         <div class="panel-body" id="orc-mao-obra-list">
           <div style="color:var(--cinza-escuro);font-size:13px">A carregar profissionais...</div>
         </div>
-        <div class="total-bar" style="background:var(--cinza-escuro)">
+        <div class="total-bar" style="background:rgba(255,255,255,0.06)">
           <span class="total-label">CUSTO DE MÃO DE OBRA</span>
           <span class="total-val" id="orc-mo-total-disp">R$ 0,00</span>
         </div>
@@ -451,7 +453,7 @@
               <div class="prev-row"><span>+ Margem de lucro</span><strong id="prev-margem">R$ 0,00</strong></div>
               <div class="prev-row"><span>+ Taxa de serviço</span><strong id="prev-taxa">R$ 0,00</strong></div>
               <div class="prev-row highlight"><span>💰 Preço Final</span><span id="prev-final">R$ 0,00</span></div>
-              <div class="prev-row"><span>Valor por pessoa <span style="font-size:11px;color:var(--cinza-escuro);font-weight:400">(editável)</span></span><span style="display:flex;align-items:center;gap:4px;font-weight:700;color:var(--verde)">R$&nbsp;<input type="number" id="pax-input" min="0" step="0.01" placeholder="0.00" oninput="updateFromPax()" style="width:90px;padding:2px 6px;border:1px solid var(--cinza-medio);border-radius:5px;font-size:14px;font-weight:700;color:var(--verde);background:transparent;text-align:right"></span></div>
+              <div class="prev-row"><span>Valor por pessoa <span style="font-size:11px;color:var(--cinza-escuro);font-weight:400">(editável)</span></span><span style="display:flex;align-items:center;gap:4px;font-weight:700;color:var(--sucesso)">R$&nbsp;<input type="number" id="pax-input" min="0" step="0.01" placeholder="0.00" oninput="updateFromPax()" style="width:90px;padding:2px 6px;border:1px solid var(--cinza-medio);border-radius:5px;font-size:14px;font-weight:700;color:var(--sucesso);background:transparent;text-align:right"></span></div>
               <div class="prev-row aviso-row"><span>🤝 Sinal de entrada</span><strong id="prev-sinal">R$ 0,00</strong></div>
             </div>
           </div>
@@ -560,7 +562,7 @@
   <div class="modal" style="max-width:820px;width:95%">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
       <div>
-        <h3 id="perfil-nome" style="font-size:20px;color:var(--verde)"></h3>
+        <h3 id="perfil-nome" style="font-size:20px;color:var(--texto)"></h3>
         <div style="font-size:12px;color:var(--cinza-escuro);margin-top:4px">Perfil do Cliente</div>
       </div>
       <div style="display:flex;gap:8px">
@@ -578,7 +580,7 @@
       <div><span style="font-size:11px;font-weight:700;color:var(--cinza-escuro);text-transform:uppercase">Notas</span><div id="perfil-notas" style="font-size:13.5px;margin-top:2px"></div></div>
     </div>
     <!-- Histórico de eventos -->
-    <div style="font-size:13px;font-weight:700;color:var(--verde);margin-bottom:8px">📋 Histórico de Eventos</div>
+    <div style="font-size:13px;font-weight:700;color:var(--ouro-claro);margin-bottom:8px">📋 Histórico de Eventos</div>
     <div id="perfil-eventos" style="overflow-x:auto;border-radius:8px;border:1px solid var(--cinza-medio)"></div>
   </div>
 </div>
@@ -790,7 +792,7 @@ function renderDash() {
     <div style="padding:10px 0;border-bottom:1px solid var(--cinza);display:flex;justify-content:space-between;align-items:center">
       <div><div style="font-weight:700;font-size:14px">#${String(o.numero).padStart(3,'0')} · ${o.cliente_nome||'—'}</div>
       <div style="font-size:12px;color:var(--cinza-escuro)">${fmtDate(o.data_evento)}</div></div>
-      <span style="font-weight:700;color:var(--verde)">${fmtEUR(o.preco_final||o.total)}</span>
+      <span style="font-weight:700;color:var(--sucesso)">${fmtEUR(o.preco_final||o.total)}</span>
     </div>`).join('') : '<div style="color:var(--cinza-escuro);font-size:13px;padding:10px 0">Nenhum orçamento ainda</div>';
 
   // ── Receita por Mês (últimos 6 meses) ──
@@ -826,7 +828,7 @@ function renderDash() {
   const stIcons = {Pendente:'⏳',Confirmado:'✅',Cancelado:'❌',Concluído:'🏁'};
   const taxaConv = _orcamentos.length ? Math.round((stCounts.Confirmado/_orcamentos.length)*100) : 0;
   document.getElementById('dash-conversao').innerHTML =
-    `<div style="font-size:28px;font-weight:700;color:var(--verde);margin-bottom:4px">${taxaConv}%</div>
+    `<div style="font-size:28px;font-weight:700;color:var(--sucesso);margin-bottom:4px">${taxaConv}%</div>
     <div style="font-size:12px;color:var(--cinza-escuro);margin-bottom:12px">Taxa de conversão</div>` +
     Object.entries(stCounts).filter(([,v])=>v>0).map(([s,v]) => {
       const pct = Math.round((v/totalOrc)*100);
@@ -860,7 +862,7 @@ function renderDash() {
           <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nome}</div>
           <div style="font-size:11px;color:var(--cinza-escuro)">${d.eventos} evento${d.eventos>1?'s':''}</div>
         </div>
-        <div style="font-size:13px;font-weight:700;color:var(--verde)">${fmtEUR(d.total)}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--sucesso)">${fmtEUR(d.total)}</div>
       </div>`).join('')
     : '<div style="color:var(--cinza-escuro);font-size:13px">Nenhum dado ainda</div>';
 
@@ -880,7 +882,7 @@ function renderDash() {
         <div style="font-size:12px;color:var(--cinza-escuro)">Eventos previstos</div>
       </div>
       <div style="background:#e8fdf0;border-radius:8px;padding:12px;text-align:center">
-        <div style="font-size:22px;font-weight:700;color:var(--verde)">${fmtEUR(receitaConf30)}</div>
+        <div style="font-size:22px;font-weight:700;color:var(--sucesso)">${fmtEUR(receitaConf30)}</div>
         <div style="font-size:12px;color:var(--cinza-escuro)">Receita confirmada</div>
       </div>
     </div>
@@ -906,7 +908,7 @@ function renderDash() {
       </div>
       <div style="border:1px solid var(--cinza);border-radius:8px;padding:12px">
         <div style="font-size:11px;color:var(--cinza-escuro);margin-bottom:4px">💰 Receita Total Conf.</div>
-        <div style="font-size:16px;font-weight:700;color:var(--verde)">${fmtEUR(receitaTotal)}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--sucesso)">${fmtEUR(receitaTotal)}</div>
       </div>
       <div style="border:1px solid var(--cinza);border-radius:8px;padding:12px">
         <div style="font-size:11px;color:var(--cinza-escuro);margin-bottom:4px">👥 Média Pessoas/Evento</div>
@@ -927,7 +929,7 @@ function renderOrc() {
       const lbl = s || 'Todos';
       const cnt = s ? _orcamentos.filter(o=>o.status===s).length : _orcamentos.length;
       const act = _orcActiveStatus === s;
-      return `<button onclick="setOrcTab('${s}')" style="padding:5px 14px;border-radius:20px;border:1.5px solid ${act?'var(--verde)':'var(--cinza-medio)'};background:${act?'var(--verde)':'#fff'};color:${act?'#fff':'var(--texto)'};font-size:12px;font-weight:600;cursor:pointer">${lbl} <span style="opacity:0.7">(${cnt})</span></button>`;
+      return `<button onclick="setOrcTab('${s}')" style="padding:5px 14px;border-radius:20px;border:1.5px solid ${act?'var(--ouro)':'rgba(255,255,255,0.18)'};background:${act?'rgba(201,168,76,0.2)':'rgba(255,255,255,0.06)'};color:${act?'var(--ouro-claro)':'var(--texto)'};font-size:12px;font-weight:600;cursor:pointer">${lbl} <span style="opacity:0.7">(${cnt})</span></button>`;
     }).join('');
   }
   applyOrcFilters();
@@ -956,7 +958,7 @@ function renderOrcTable() {
           <td>${fmtDate(o.data_evento)}</td>
           <td>${o.num_pessoas||0}</td>
           <td><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span></td>
-          <td><strong style="color:var(--verde)">${fmtEUR(o.preco_final||o.total)}</strong></td>
+          <td><strong style="color:var(--sucesso)">${fmtEUR(o.preco_final||o.total)}</strong></td>
           <td><span style="color:var(--ouro);font-size:12px">${o.margem_percent||0}%</span></td>
           <td>
             <button class="btn btn-outline btn-sm" onclick="viewOrc('${o.id}')">👁 Ver</button>
@@ -1000,7 +1002,7 @@ function viewOrc(id) {
   const moTotal = moAtivos.reduce((acc,p) => acc + (moQtd[p.id]||0) * Number(p.preco_evento||0), 0);
   const moHtml = moAtivos.length ? `
     <div style="margin-top:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--verde);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--cinza)">👷 Mão de Obra</div>
+      <div style="font-size:13px;font-weight:700;color:var(--ouro-claro);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--cinza)">👷 Mão de Obra</div>
       <table class="orc-itens-table">
         <thead><tr><th>Profissional</th><th>Grupo</th><th>Qtd</th><th>Valor/evento</th><th>Subtotal</th></tr></thead>
         <tbody>${moAtivos.map(p=>{
@@ -1009,7 +1011,7 @@ function viewOrc(id) {
           return `<tr><td>${p.nome}</td><td><span class="badge-cat">${p.grupo||'—'}</span></td><td>${qty}</td><td>${fmtEUR(Number(p.preco_evento||0))}</td><td><strong>${fmtEUR(sub)}</strong></td></tr>`;
         }).join('')}</tbody>
       </table>
-      <div style="text-align:right;margin-top:6px;font-size:13px">Total mão de obra: <strong style="color:var(--verde)">${fmtEUR(moTotal)}</strong></div>
+      <div style="text-align:right;margin-top:6px;font-size:13px">Total mão de obra: <strong style="color:var(--sucesso)">${fmtEUR(moTotal)}</strong></div>
     </div>` : '';
 
   document.getElementById('view-orc-title').textContent = `Orçamento #${String(o.numero).padStart(3,'0')} — ${o.cliente_nome||'—'}`;
@@ -1021,7 +1023,7 @@ function viewOrc(id) {
       <div class="detail-row"><strong>Status</strong><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span></div>
     </div>
     ${o.notas ? `<div style="background:var(--cinza);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px">${o.notas}</div>` : ''}
-    <div style="font-size:13px;font-weight:700;color:var(--verde);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--cinza)">🍽️ Cardápio</div>
+    <div style="font-size:13px;font-weight:700;color:var(--ouro-claro);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--cinza)">🍽️ Cardápio</div>
     <table class="orc-itens-table">
       <thead><tr><th>Prato</th><th>Categoria</th><th>Qtd</th><th>Unit.</th><th>Subtotal</th></tr></thead>
       <tbody>${itens.map(i=>`<tr><td>${i.nome_prato}</td><td>${i.categoria||'—'}</td><td>${i.quantidade}</td><td>${fmtEUR(i.preco_unit)}</td><td><strong>${fmtEUR(i.subtotal)}</strong></td></tr>`).join('')}</tbody>
@@ -1034,9 +1036,9 @@ function viewOrc(id) {
         <div><div style="color:var(--cinza-escuro);font-size:11px;text-transform:uppercase;font-weight:700">Sinal</div><div style="font-weight:700">${o.sinal_percent||0}%</div></div>
       </div>
       <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-size:12px;color:var(--cinza-escuro)">Valor/pax</div><div style="font-weight:700;color:var(--verde)">${fmtEUR(pax)}</div></div>
+        <div><div style="font-size:12px;color:var(--cinza-escuro)">Valor/pax</div><div style="font-weight:700;color:var(--sucesso)">${fmtEUR(pax)}</div></div>
         <div style="text-align:right"><div style="font-size:12px;color:var(--aviso)">Sinal de entrada</div><div style="font-weight:700;color:var(--aviso)">${fmtEUR(sinalEur)}</div></div>
-        <div style="font-size:22px;font-weight:900;color:var(--verde)">TOTAL ${fmtEUR(precoFinal)}</div>
+        <div style="font-size:22px;font-weight:900;color:var(--ouro-claro)">TOTAL ${fmtEUR(precoFinal)}</div>
       </div>
     </div>`;
 
@@ -1517,12 +1519,12 @@ function renderCliTable() {
       const tot = orcs.reduce((s,o)=>s+Number(o.preco_final||o.total||0),0);
       const last = [...orcs].sort((a,b)=>new Date(b.data_evento||0)-new Date(a.data_evento||0))[0];
       return `<tr>
-        <td style="cursor:pointer" onclick="viewCli('${c.id}')"><strong style="color:var(--verde)">${c.nome}</strong><div style="font-size:11px;color:var(--cinza-escuro)">${c.morada||''}</div></td>
+        <td style="cursor:pointer" onclick="viewCli('${c.id}')"><strong style="color:var(--ouro-claro)">${c.nome}</strong><div style="font-size:11px;color:var(--cinza-escuro)">${c.morada||''}</div></td>
         <td>${c.email||'—'}</td>
         <td>${c.telefone||'—'}</td>
-        <td><span style="font-weight:700;color:var(--verde)">${orcs.length}</span></td>
+        <td><span style="font-weight:700;color:var(--sucesso)">${orcs.length}</span></td>
         <td>${last?fmtDate(last.data_evento):'—'}</td>
-        <td><strong style="color:var(--verde)">${tot>0?fmtEUR(tot):'—'}</strong></td>
+        <td><strong style="color:var(--sucesso)">${tot>0?fmtEUR(tot):'—'}</strong></td>
         <td>
           <button class="btn btn-outline btn-sm" onclick="viewCli('${c.id}')">👁 Perfil</button>
           <button class="btn btn-outline btn-sm" onclick="editCli('${c.id}')">✏️ Editar</button>
@@ -1580,11 +1582,11 @@ function viewCli(id) {
   m.querySelector('#perfil-kpis').innerHTML = `
     <div style="background:var(--cinza);border-radius:10px;padding:14px 18px;text-align:center">
       <div style="font-size:11px;color:var(--cinza-escuro);font-weight:700;text-transform:uppercase">Total de Eventos</div>
-      <div style="font-size:28px;font-weight:800;color:var(--verde)">${orcs.length}</div>
+      <div style="font-size:28px;font-weight:800;color:var(--sucesso)">${orcs.length}</div>
     </div>
     <div style="background:var(--cinza);border-radius:10px;padding:14px 18px;text-align:center">
       <div style="font-size:11px;color:var(--cinza-escuro);font-weight:700;text-transform:uppercase">Total Faturado</div>
-      <div style="font-size:20px;font-weight:800;color:var(--verde)">${fmtEUR(totalGasto)}</div>
+      <div style="font-size:20px;font-weight:800;color:var(--sucesso)">${fmtEUR(totalGasto)}</div>
     </div>
     <div style="background:var(--cinza);border-radius:10px;padding:14px 18px;text-align:center">
       <div style="font-size:11px;color:var(--cinza-escuro);font-weight:700;text-transform:uppercase">Confirmados</div>
@@ -1599,7 +1601,7 @@ function viewCli(id) {
           <td>${fmtDate(o.data_evento)}</td>
           <td>${o.local_evento || '—'}</td>
           <td>${o.num_pessoas || '—'}</td>
-          <td><strong style="color:var(--verde)">${fmtEUR(Number(o.preco_final || o.total || 0))}</strong></td>
+          <td><strong style="color:var(--sucesso)">${fmtEUR(Number(o.preco_final || o.total || 0))}</strong></td>
           <td><span class="badge badge-${(o.status || 'pendente').toLowerCase()}">${o.status || 'Pendente'}</span></td>
           <td><button class="btn btn-outline btn-sm" onclick="closeModal('modal-cli-perfil');viewOrc('${o.id}')">Ver</button></td>
         </tr>`).join('')}
@@ -1745,7 +1747,7 @@ function renderMaoObra() {
             <td><strong>${p.nome}</strong></td>
             <td><input type="number" id="prof-preco-${p.id}" value="${p.preco_evento||0}" min="0" step="0.01" style="width:110px;padding:5px 8px;border:1px solid var(--cinza-medio);border-radius:6px;font-size:13px"></td>
             <td><input type="number" id="prof-qtd-${p.id}" value="${qtdT}" min="1" step="1" style="width:70px;padding:5px 8px;border:1px solid var(--cinza-medio);border-radius:6px;font-size:13px;text-align:center"></td>
-            <td style="font-weight:700;color:var(--verde)">${fmtEUR((p.preco_evento||0)*qtdT)}</td>
+            <td style="font-weight:700;color:var(--sucesso)">${fmtEUR((p.preco_evento||0)*qtdT)}</td>
             <td>${ultPag ? `${fmtDate(ultPag.data_pagamento)} · <strong>${fmtEUR(ultPag.valor)}</strong><br><span style="font-size:11px;color:var(--cinza-escuro)">${ultPag.evento_ref||''}</span>` : '<span style="color:var(--cinza-escuro);font-size:12px">Sem pagamentos</span>'}</td>
             <td>
               <button class="btn btn-outline btn-sm" onclick="openPagModal('${p.id}','${p.nome.replace(/'/g,"\\'")}')">📜 Histórico</button>
@@ -1769,7 +1771,7 @@ function renderMaoObra() {
           <td><strong>${prof?.nome||'—'}</strong><br><span style="font-size:11px;color:var(--cinza-escuro)">${prof?.grupo||''}</span></td>
           <td>${fmtDate(pg.data_pagamento)}</td>
           <td>${pg.evento_ref||'—'}</td>
-          <td><strong style="color:var(--verde)">${fmtEUR(pg.valor)}</strong></td>
+          <td><strong style="color:var(--sucesso)">${fmtEUR(pg.valor)}</strong></td>
           <td>${pg.notas||'—'}</td>
         </tr>`;
       }).join('')}</tbody>
