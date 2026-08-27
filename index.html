@@ -1014,6 +1014,25 @@ function viewOrc(id) {
       <div style="text-align:right;margin-top:6px;font-size:13px">Total mão de obra: <strong style="color:var(--sucesso)">${fmtEUR(moTotal)}</strong></div>
     </div>` : '';
 
+  // Agrupar itens do cardápio por categoria
+  const itensPorCat = {};
+  itens.forEach(i => {
+    const cat = i.categoria || 'Sem categoria';
+    if (!itensPorCat[cat]) itensPorCat[cat] = [];
+    itensPorCat[cat].push(i);
+  });
+  const cardapioHtml = Object.keys(itensPorCat).length === 0
+    ? `<p style="color:var(--cinza-escuro);font-size:13px;padding:8px 0">Nenhum item no cardápio.</p>`
+    : Object.entries(itensPorCat).map(([cat, catItens]) => `
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--verde-claro);text-transform:uppercase;letter-spacing:0.8px;padding:5px 0;margin-bottom:4px;border-bottom:1px solid rgba(30,64,40,0.15)">${cat}</div>
+        <table class="orc-itens-table">
+          <thead><tr><th>Prato</th><th>Qtd</th><th>Unit.</th><th>Subtotal</th></tr></thead>
+          <tbody>${catItens.map(i=>`<tr><td>${i.nome_prato}</td><td>${i.quantidade}</td><td>${fmtEUR(i.preco_unit)}</td><td><strong>${fmtEUR(i.subtotal)}</strong></td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+    `).join('');
+
   document.getElementById('view-orc-title').textContent = `Orçamento #${String(o.numero).padStart(3,'0')} — ${o.cliente_nome||'—'}`;
   document.getElementById('view-orc-content').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
@@ -1023,11 +1042,8 @@ function viewOrc(id) {
       <div class="detail-row"><strong>Status</strong><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span></div>
     </div>
     ${o.notas ? `<div style="background:var(--cinza);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px">${o.notas}</div>` : ''}
-    <div style="font-size:13px;font-weight:700;color:var(--ouro-claro);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--cinza)">🍽️ Cardápio</div>
-    <table class="orc-itens-table">
-      <thead><tr><th>Prato</th><th>Categoria</th><th>Qtd</th><th>Unit.</th><th>Subtotal</th></tr></thead>
-      <tbody>${itens.map(i=>`<tr><td>${i.nome_prato}</td><td>${i.categoria||'—'}</td><td>${i.quantidade}</td><td>${fmtEUR(i.preco_unit)}</td><td><strong>${fmtEUR(i.subtotal)}</strong></td></tr>`).join('')}</tbody>
-    </table>
+    <div style="font-size:13px;font-weight:700;color:var(--ouro-claro);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--cinza)">🍽️ Cardápio</div>
+    ${cardapioHtml}
     ${moHtml}
     <div style="background:var(--cinza);border-radius:8px;padding:14px 18px;margin-top:14px;font-size:13.5px">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
