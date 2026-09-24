@@ -452,7 +452,7 @@
               <div class="prev-row"><span>= Custo total</span><strong id="prev-custo-total">R$ 0,00</strong></div>
               <div class="prev-row"><span>+ Margem de lucro</span><strong id="prev-margem">R$ 0,00</strong></div>
               <div class="prev-row"><span>+ Taxa de serviço</span><strong id="prev-taxa">R$ 0,00</strong></div>
-              <div class="prev-row highlight"><span>💰 Preço Final</span><span id="prev-final">R$ 0,00</span></div>
+              <div class="prev-row highlight"><span>💰 Preço Final <span style="font-size:11px;color:var(--cinza-escuro);font-weight:400">(editável)</span></span><span style="display:flex;align-items:center;gap:4px">R$&nbsp;<input type="number" id="prev-final" min="0" step="0.01" placeholder="0.00" oninput="updateFromFinal()" style="width:120px;padding:3px 7px;border:1px solid var(--cinza-medio);border-radius:5px;font-size:16px;font-weight:800;color:var(--ouro-claro);background:transparent;text-align:right"></span></div>
               <div class="prev-row"><span>Valor por pessoa <span style="font-size:11px;color:var(--cinza-escuro);font-weight:400">(editável)</span></span><span style="display:flex;align-items:center;gap:4px;font-weight:700;color:var(--sucesso)">R$&nbsp;<input type="number" id="pax-input" min="0" step="0.01" placeholder="0.00" oninput="updateFromPax()" style="width:90px;padding:2px 6px;border:1px solid var(--cinza-medio);border-radius:5px;font-size:14px;font-weight:700;color:var(--sucesso);background:transparent;text-align:right"></span></div>
               <div class="prev-row aviso-row"><span>🤝 Sinal de entrada</span><strong id="prev-sinal">R$ 0,00</strong></div>
             </div>
@@ -1233,12 +1233,16 @@ function initOrcForm(orc=null) {
   _orcMaoObraQtd = {};
   const savedMo = (orc && orc.mao_obra_qtd) ? orc.mao_obra_qtd : {};
   _maoObraProfis.forEach(p => { _orcMaoObraQtd[p.id] = savedMo[p.id] !== undefined ? savedMo[p.id] : 0; });
-  // Reset pax input
+  // Reset pax + preço final inputs
   const paxEl = document.getElementById('pax-input');
   if (paxEl) paxEl.value = '';
+  const finalEl = document.getElementById('prev-final');
+  if (finalEl) finalEl.value = '';
   renderOrcItens();
   renderOrcMaoObra();
-  updatePricing();
+  // Ao editar, mostra o preço final exatamente como foi guardado
+  const finalGuardado = orc ? Number(orc.preco_final || orc.total || 0) : 0;
+  updatePricing(finalGuardado > 0 ? finalGuardado : undefined);
 }
 
 function addItemOrc() {
@@ -1377,11 +1381,39 @@ function updateFromPax() {
   margemP = Math.round(margemP * 10) / 10; // 1 decimal
   document.getElementById('sl-margem-val').value = margemP;
   document.getElementById('sl-margem').value = Math.min(margemP, 500);
-  updatePricing();
+  updatePricing(precoFinal);
   _paxUserEditing = false;
 }
 
-function updatePricing() {
+let _finalUserEditing = false;
+
+function updateFromFinal() {
+  // User typed the total price → back-calculate valor/pessoa + margem %
+  _finalUserEditing = true;
+  const precoFinal = parseFloat(document.getElementById('prev-final').value)||0;
+  const pessoas = parseInt(document.getElementById('orc-pessoas').value)||1;
+  const taxa = parseFloat(document.getElementById('orc-taxa').value)||0;
+  const quebrasP = parseFloat(document.getElementById('sl-quebras').value)||0;
+  const custo = _orcFormItens.reduce((a,i)=>a+i.sub, 0);
+  const moTotal = calcMoTotal();
+  const quebrasEur = custo * (quebrasP/100);
+  const custoTotal = custo + quebrasEur + moTotal;
+
+  let margemP = 0;
+  if (custoTotal > 0) {
+    const margemEur = precoFinal - custoTotal - taxa;
+    margemP = Math.max(0, (margemEur / custoTotal) * 100);
+  }
+  margemP = Math.round(margemP * 10) / 10; // 1 decimal
+  document.getElementById('sl-margem-val').value = margemP;
+  document.getElementById('sl-margem').value = Math.min(margemP, 500);
+  updatePricing(precoFinal);
+  _finalUserEditing = false;
+}
+
+// precoFinalFixo: quando o utilizador digita o Preço Final ou o Valor/pessoa,
+// esse número manda — a margem em R$ é deduzida dele, sem erro de arredondamento.
+function updatePricing(precoFinalFixo) {
   const quebrasP = parseFloat(document.getElementById('sl-quebras').value)||0;
   const margemP = parseFloat(document.getElementById('sl-margem-val').value)||0;
   const sinalP = parseFloat(document.getElementById('sl-sinal').value)||0;
@@ -1397,9 +1429,9 @@ function updatePricing() {
 
   const quebrasEur = custo * (quebrasP/100);
   const custoTotal = custo + quebrasEur + moTotal;
-  const margemEur = custoTotal * (margemP/100);
-  const precoSemTaxa = custoTotal + margemEur;
-  const precoFinal = precoSemTaxa + taxa;
+  const usarFixo = isFinite(precoFinalFixo) && precoFinalFixo > 0;
+  const precoFinal = usarFixo ? precoFinalFixo : (custoTotal + custoTotal*(margemP/100) + taxa);
+  const margemEur = usarFixo ? (precoFinal - custoTotal - taxa) : custoTotal*(margemP/100);
   const pax = precoFinal / pessoas;
   const sinalEur = precoFinal * (sinalP/100);
 
@@ -1409,7 +1441,13 @@ function updatePricing() {
   document.getElementById('prev-custo-total').textContent = fmtEUR(custoTotal);
   document.getElementById('prev-margem').textContent = fmtEUR(margemEur);
   document.getElementById('prev-taxa').textContent = fmtEUR(taxa);
-  document.getElementById('prev-final').textContent = fmtEUR(precoFinal);
+  // Only update the final-price input when user is NOT editing it directly
+  if (!_finalUserEditing) {
+    const finalInput = document.getElementById('prev-final');
+    if (document.activeElement !== finalInput) {
+      finalInput.value = Math.round(precoFinal * 100) / 100;
+    }
+  }
   // Only update pax input when user is NOT editing it directly
   if (!_paxUserEditing) {
     const paxInput = document.getElementById('pax-input');
@@ -1455,7 +1493,9 @@ async function saveOrc(doPrint=false) {
   const quebrasEur = custo * (quebrasP/100);
   const custoTotal = custo + quebrasEur + moTotal;
   const margemEur = custoTotal * (margemP/100);
-  const precoFinal = custoTotal + margemEur + taxa;
+  // Preço final: usa o valor exato digitado no campo (se houver), senão o calculado
+  const finalDigitado = parseFloat(document.getElementById('prev-final').value);
+  const precoFinal = (isFinite(finalDigitado) && finalDigitado > 0) ? finalDigitado : (custoTotal + margemEur + taxa);
   const editId = document.getElementById('orc-edit-id').value;
 
   showLoader(true);
