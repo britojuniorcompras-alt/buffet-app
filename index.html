@@ -353,6 +353,8 @@
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <div class="tag-group" id="orc-status-tabs" style="margin:0;gap:6px"></div>
             <input class="search-bar" id="search-orc" placeholder="🔍 Pesquisar..." oninput="filterOrc()" style="width:180px">
+            <button class="btn btn-outline btn-sm" title="Compartilhar resumo de todos os meses no WhatsApp" onclick="shareResumoGeral()">📤 Resumo</button>
+            <button class="btn btn-outline btn-sm" title="Copiar resumo de todos os meses" onclick="copyResumoGeral()">📋</button>
           </div>
         </div>
         <div id="tbl-orc-wrap"></div>
@@ -944,29 +946,165 @@ function applyOrcFilters() {
   });
   renderOrcTable();
 }
+
+// ── Agrupamento de eventos por mês/ano ──
+const _MESES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+let _orcMesesFechados = {};
+
+function escHtml(s) {
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function nomeMesOrc(key) {
+  if (key === 'sem-data') return 'Sem data definida';
+  const [y, m] = key.split('-');
+  return `${_MESES_NOMES[parseInt(m,10)-1]} de ${y}`;
+}
+
+function agruparOrcPorMes(lista) {
+  const grupos = {};
+  lista.forEach(o => {
+    const key = o.data_evento ? String(o.data_evento).slice(0,7) : 'sem-data';
+    (grupos[key] = grupos[key] || []).push(o);
+  });
+  // dentro do mês: por dia, do 1 ao 31
+  Object.values(grupos).forEach(g => g.sort((a,b) => String(a.data_evento||'').localeCompare(String(b.data_evento||''))));
+  // meses: mais recentes primeiro; "sem data" sempre no fim
+  const keys = Object.keys(grupos).sort((a,b) => {
+    if (a === 'sem-data') return 1;
+    if (b === 'sem-data') return -1;
+    return b.localeCompare(a);
+  });
+  return keys.map(k => [k, grupos[k]]);
+}
+
+function toggleMesOrc(key) {
+  _orcMesesFechados[key] = !_orcMesesFechados[key];
+  renderOrcTable();
+}
+
+// ── Resumo do mês para partilhar ──
+function buildResumoMes(key) {
+  const grupos = Object.fromEntries(agruparOrcPorMes(_orcamentos_filtered));
+  const lista = grupos[key] || [];
+  if (!lista.length) return '';
+  const diasSem = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  let txt = `*${nomeMesOrc(key).toUpperCase()}*\n`;
+  txt += `A Bela Sintra Buffet — Resumo de Eventos\n\n`;
+
+  lista.forEach(o => {
+    let quando = 'Sem data';
+    if (o.data_evento) {
+      const d = new Date(o.data_evento + 'T00:00:00');
+      quando = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} (${diasSem[d.getDay()]})`;
+    }
+    txt += `📅 *${quando}* — ${o.cliente_nome || '—'}\n`;
+    const detalhes = [`${o.num_pessoas||0} pessoas`];
+    if (o.hora_evento) detalhes.push(o.hora_evento);
+    if (o.local_evento) detalhes.push(o.local_evento);
+    txt += `   ${detalhes.join(' · ')}\n`;
+    txt += `   ${o.status||'Pendente'} · ${fmtEUR(o.preco_final||o.total)}\n\n`;
+  });
+
+  const tot = lista.reduce((s,o)=>s+Number(o.preco_final||o.total||0),0);
+  const conf = lista.filter(o=>o.status==='Confirmado');
+  const totConf = conf.reduce((s,o)=>s+Number(o.preco_final||o.total||0),0);
+  const pessoas = lista.reduce((s,o)=>s+Number(o.num_pessoas||0),0);
+
+  txt += `———————————\n`;
+  txt += `*Total: ${fmtEUR(tot)}* (${lista.length} evento${lista.length!==1?'s':''})\n`;
+  txt += `Confirmados: ${conf.length} — ${fmtEUR(totConf)}\n`;
+  txt += `Total de convidados: ${pessoas}\n`;
+  return txt;
+}
+
+function shareResumoMes(key) {
+  const txt = buildResumoMes(key);
+  if (!txt) return toast('Nada para partilhar', true);
+  window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+}
+
+function copyResumoMes(key) {
+  const txt = buildResumoMes(key);
+  if (!txt) return toast('Nada para partilhar', true);
+  navigator.clipboard.writeText(txt)
+    .then(() => toast('Resumo copiado!'))
+    .catch(() => toast('Erro ao copiar', true));
+}
+
+function buildResumoGeral() {
+  const grupos = agruparOrcPorMes(_orcamentos_filtered);
+  if (!grupos.length) return '';
+  let txt = `*A BELA SINTRA BUFFET*\nResumo de Eventos\n\n`;
+  txt += grupos.map(([k]) => buildResumoMes(k).split('\n').slice(1).join('\n')).join('\n');
+  if (grupos.length > 1) {
+    const tot = _orcamentos_filtered.reduce((s,o)=>s+Number(o.preco_final||o.total||0),0);
+    txt += `\n═══════════\n*TOTAL GERAL: ${fmtEUR(tot)}* (${_orcamentos_filtered.length} eventos)\n`;
+  }
+  return txt;
+}
+
+function shareResumoGeral() {
+  const txt = buildResumoGeral();
+  if (!txt) return toast('Nada para partilhar', true);
+  window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+}
+
+function copyResumoGeral() {
+  const txt = buildResumoGeral();
+  if (!txt) return toast('Nada para partilhar', true);
+  navigator.clipboard.writeText(txt)
+    .then(() => toast('Resumo copiado!'))
+    .catch(() => toast('Erro ao copiar', true));
+}
+
 function renderOrcTable() {
   const wrap = document.getElementById('tbl-orc-wrap');
   if (!_orcamentos_filtered.length) {
     wrap.innerHTML = '<div class="empty-state"><div class="big">📋</div><p>Nenhum orçamento encontrado</p></div>';
   } else {
-    wrap.innerHTML = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="min-width:600px;width:100%">
-      <thead><tr><th>Nº</th><th>Cliente</th><th>Data Evento</th><th>Pessoas</th><th>Status</th><th>Preço Final</th><th>Margem</th><th>Ações</th></tr></thead>
-      <tbody>${_orcamentos_filtered.map(o=>`
-        <tr>
-          <td><strong>#${String(o.numero).padStart(3,'0')}</strong></td>
-          <td>${o.cliente_nome||'—'}</td>
-          <td>${fmtDate(o.data_evento)}</td>
-          <td>${o.num_pessoas||0}</td>
-          <td><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span></td>
-          <td><strong style="color:var(--sucesso)">${fmtEUR(o.preco_final||o.total)}</strong></td>
-          <td><span style="color:var(--ouro);font-size:12px">${o.margem_percent||0}%</span></td>
-          <td>
-            <button class="btn btn-outline btn-sm" onclick="viewOrc('${o.id}')">👁 Ver</button>
-            <button class="btn btn-outline btn-sm" onclick="editOrc('${o.id}')">✏️ Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button>
-          </td>
-        </tr>`).join('')}
-      </tbody></table></div>`;
+    const grupos = agruparOrcPorMes(_orcamentos_filtered);
+    wrap.innerHTML = grupos.map(([key, lista]) => {
+      const totMes = lista.reduce((s,o)=>s+Number(o.preco_final||o.total||0),0);
+      const confMes = lista.filter(o=>o.status==='Confirmado').length;
+      const fechado = !!_orcMesesFechados[key];
+      return `
+      <div style="margin-bottom:18px;border:1px solid rgba(30,64,40,0.12);border-radius:10px;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:rgba(30,64,40,0.07);border-bottom:${fechado?'none':'1px solid rgba(30,64,40,0.12)'}">
+          <div style="display:flex;align-items:center;gap:10px;cursor:pointer;min-width:0" onclick="toggleMesOrc('${key}')">
+            <span style="font-size:13px;color:var(--cinza-escuro);transition:transform .2s;display:inline-block;transform:rotate(${fechado?'-90':'0'}deg)">▼</span>
+            <div style="min-width:0">
+              <div style="font-weight:800;font-size:15px;color:var(--verde)">${nomeMesOrc(key)}</div>
+              <div style="font-size:11.5px;color:var(--cinza-escuro)">${lista.length} evento${lista.length!==1?'s':''} · ${confMes} confirmado${confMes!==1?'s':''}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div style="text-align:right"><div style="font-size:10.5px;color:var(--cinza-escuro);text-transform:uppercase;letter-spacing:0.5px">Total do mês</div><div style="font-weight:800;color:var(--sucesso);font-size:15px">${fmtEUR(totMes)}</div></div>
+            <button class="btn btn-outline btn-sm" title="Compartilhar no WhatsApp" onclick="shareResumoMes('${key}')">📤</button>
+            <button class="btn btn-outline btn-sm" title="Copiar resumo" onclick="copyResumoMes('${key}')">📋</button>
+          </div>
+        </div>
+        ${fechado ? '' : `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="min-width:600px;width:100%">
+          <thead><tr><th>Nº</th><th>Cliente</th><th>Data Evento</th><th>Pessoas</th><th>Status</th><th>Preço Final</th><th>Margem</th><th>Ações</th></tr></thead>
+          <tbody>${lista.map(o=>`
+            <tr>
+              <td><strong>#${String(o.numero).padStart(3,'0')}</strong></td>
+              <td>${escHtml(o.cliente_nome||'—')}</td>
+              <td>${fmtDate(o.data_evento)}</td>
+              <td>${o.num_pessoas||0}</td>
+              <td><span class="badge badge-${(o.status||'pendente').toLowerCase()}">${escHtml(o.status||'')}</span></td>
+              <td><strong style="color:var(--sucesso)">${fmtEUR(o.preco_final||o.total)}</strong></td>
+              <td><span style="color:var(--ouro);font-size:12px">${o.margem_percent||0}%</span></td>
+              <td>
+                <button class="btn btn-outline btn-sm" onclick="viewOrc('${o.id}')">👁 Ver</button>
+                <button class="btn btn-outline btn-sm" onclick="editOrc('${o.id}')">✏️ Editar</button>
+                <button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button>
+              </td>
+            </tr>`).join('')}
+          </tbody></table></div>`}
+      </div>`;
+    }).join('');
   }
   const bar = document.getElementById('orc-totais-bar');
   if (bar) {
