@@ -1264,7 +1264,23 @@ function printOrc(id) {
       </div>
     </div>
     <div class="p-footer">A Bela Sintra · Gestão de Eventos v3.0 · ${new Date().toLocaleDateString('pt-PT')}</div>`;
-  setTimeout(() => window.print(), 100);
+  imprimirComNome(o);
+}
+
+// O nome do arquivo PDF vem do título da página. Troca o título para ter o cliente
+// (também no app da Bela Sintra quando o buffet está aberto dentro dele) e depois volta.
+function imprimirComNome(o) {
+  const limpa = t => String(t || '').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const partes = ['Orçamento ' + String(o.numero || '').padStart(3, '0'), limpa(o.cliente_nome) || 'Cliente'];
+  if (o.data_evento) { const d = String(o.data_evento).slice(0, 10).split('-'); if (d.length === 3) partes.push(d[2] + '-' + d[1] + '-' + d[0]); }
+  const nome = partes.join(' - ');
+  const docs = [document];
+  try { if (window.parent && window.parent !== window && window.parent.document) docs.push(window.parent.document); } catch (e) { }
+  const antes = docs.map(d => d.title);
+  const voltar = () => docs.forEach((d, i) => { try { d.title = antes[i]; } catch (e) { } });
+  docs.forEach(d => { try { d.title = nome; } catch (e) { } });
+  window.addEventListener('afterprint', voltar, { once: true });
+  setTimeout(() => { window.print(); setTimeout(voltar, 1500); }, 100);
 }
 
 // Share functions
