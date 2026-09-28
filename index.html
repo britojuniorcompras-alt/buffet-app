@@ -2114,9 +2114,24 @@ function voltarGestaoCompras() {
       return;
     }
   } catch (e) { }
-  // aberto sozinho (aba separada / tela cheia): vai para o app de compras
-  window.location.href = URL_GESTAO_COMPRAS;
+  // aberto em outra aba pelo app de compras (botão ↗): fecha esta aba e volta para ele,
+  // que já está logado — abrir o app de novo aqui pediria a senha outra vez
+  try {
+    if (window.opener && !window.opener.closed) {
+      try { window.opener.focus(); } catch (e) { }
+      window.close();
+      setTimeout(function () { if (!window.closed) irParaCompras(); }, 400);
+      return;
+    }
+  } catch (e) { }
+  // veio do app de compras nesta mesma aba: volta a página (não recarrega do zero)
+  if (document.referrer && document.referrer.indexOf('/a-bela-sintra-app') >= 0 && history.length > 1) {
+    history.back();
+    return;
+  }
+  irParaCompras();
 }
+function irParaCompras() { window.location.href = URL_GESTAO_COMPRAS; }
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.topbar').forEach(function (tb) {
     if (tb.querySelector('.btn-voltar-compras')) return;
