@@ -84,6 +84,30 @@
   .form-group input, .form-group select, .form-group textarea { padding: 9px 12px; border: 1.5px solid rgba(30,64,40,0.18); border-radius: 8px; font-size: 13.5px; background: #ffffff; color: var(--texto); transition: border-color 0.15s; }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--verde); background: #ffffff; box-shadow: 0 0 0 3px rgba(30,64,40,0.08); }
   .form-group textarea { resize: vertical; min-height: 80px; }
+  .resumo-ev-area { width: 100%; box-sizing: border-box; padding: 14px; border: 1.5px solid rgba(30,64,40,0.2);
+    border-radius: 10px; font-size: 14.5px; line-height: 1.55; font-family: inherit; background: #fff; color: var(--texto); resize: vertical; }
+  .resumo-ev-area:focus { outline: none; border-color: var(--verde); box-shadow: 0 0 0 3px rgba(30,64,40,0.08); }
+  /* ===== Mão de obra do evento: quantidade e valor ajustável ===== */
+  .mo-linha { display: grid; grid-template-columns: 1fr 86px 128px 170px; gap: 10px; align-items: end;
+    padding: 10px 0; border-bottom: 1px solid var(--cinza); }
+  .mo-linha.on { background: rgba(30,64,40,0.03); border-radius: 8px; padding: 10px 8px; }
+  .mo-nome { font-size: 14.5px; font-weight: 600; grid-column: 1; align-self: center; }
+  .mo-tag { font-size: 10.5px; font-weight: 700; color: var(--aviso); background: rgba(180,83,9,0.12);
+    padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+  .mo-campo { display: flex; flex-direction: column; gap: 3px; }
+  .mo-campo span { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: rgba(30,64,40,0.7); }
+  .mo-campo input { padding: 9px 10px; border: 1.5px solid rgba(30,64,40,0.2); border-radius: 8px;
+    font-size: 15px; font-weight: 600; text-align: center; background: #fff; color: var(--texto); font-family: inherit; width: 100%; }
+  .mo-campo input:focus { outline: none; border-color: var(--verde); box-shadow: 0 0 0 3px rgba(30,64,40,0.08); }
+  .mo-campo input.ajustado { border-color: var(--aviso); background: #fffaf2; color: var(--aviso); }
+  .mo-sub { font-size: 13px; color: var(--cinza-escuro); align-self: center; }
+  .mo-voltar { display: block; margin-top: 3px; border: none; background: none; padding: 0;
+    font-size: 11.5px; font-weight: 700; color: var(--azul); cursor: pointer; font-family: inherit; }
+  @media (max-width: 700px) {
+    .mo-linha { grid-template-columns: 1fr 1fr; grid-template-areas: 'nome nome' 'qtd preco' 'sub sub'; gap: 8px; }
+    .mo-nome { grid-area: nome; } .mo-campo:nth-of-type(1) { grid-area: qtd; } .mo-campo:nth-of-type(2) { grid-area: preco; }
+    .mo-sub { grid-area: sub; }
+  }
   /* ===== Busca de pratos do cardápio: letra grande e filtro na hora ===== */
   .busca-prato { background: var(--cinza); border-radius: 12px; padding: 14px; margin-bottom: 16px; min-width: 0; max-width: 100%; overflow: hidden; }
   .bp-campo { position: relative; display: flex; align-items: center; }
@@ -674,12 +698,27 @@
 </div>
 
 <!-- MODAL VER ORÇAMENTO -->
+<div id="modal-resumo-ev" style="display:none" class="modal-overlay">
+  <div class="modal" style="max-width:560px">
+    <h3>📤 Resumo do evento</h3>
+    <p style="font-size:13px;color:var(--cinza-escuro);margin:6px 0 10px">Confira abaixo — dá para editar antes de enviar.</p>
+    <textarea id="resumo-ev-texto" class="resumo-ev-area" rows="16"></textarea>
+    <div class="form-actions" style="margin-top:16px">
+      <button class="btn btn-aviso" onclick="resumoWA()">📱 WhatsApp</button>
+      <button class="btn btn-outline" onclick="resumoEmail()">📧 E-mail</button>
+      <button class="btn btn-outline" onclick="resumoCopiar()">🔗 Copiar</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-resumo-ev')">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-orc-view" style="display:none" class="modal-overlay">
   <div class="modal" style="max-width:720px">
     <h3 id="view-orc-title">Orçamento</h3>
     <div id="view-orc-content"></div>
     <div class="form-actions" style="margin-top:20px">
       <button class="btn btn-primary" id="view-orc-edit-btn">✏️ Editar</button>
+      <button class="btn btn-ouro" id="view-orc-resumo-btn">📤 Compartilhar resumo</button>
       <button class="btn btn-success" id="view-orc-print-btn">🖨️ Imprimir / PDF</button>
       <button class="btn btn-aviso" id="view-orc-wa-btn">📱 WhatsApp</button>
       <button class="btn btn-outline" id="view-orc-email-btn">📧 Email</button>
@@ -742,6 +781,7 @@ let _pratos = [], _clientes = [], _orcamentos = [], _orcItens = [];
 let _maoObraProfis = [], _maoObraPagamentos = [];
 let _orcFormItens = [];
 let _orcMaoObraQtd = {}; // profId → quantidade para o evento atual
+let _orcMaoObraPreco = {}; // profId → preço ajustado à mão SÓ neste evento (vazio = usa o cadastro)
 let _cardCat = 'Todos', _fichaCat = 'Todos';
 
 // Utils
@@ -1256,6 +1296,7 @@ function viewOrc(id) {
     </div>`;
 
   document.getElementById('view-orc-edit-btn').onclick = () => { closeModal('modal-orc-view'); editOrc(id); };
+  document.getElementById('view-orc-resumo-btn').onclick = () => { abrirResumoEvento(id); };
   document.getElementById('view-orc-print-btn').onclick = () => { closeModal('modal-orc-view'); printOrc(id); };
   document.getElementById('view-orc-wa-btn').onclick = () => { closeModal('modal-orc-view'); shareWA(id); };
   document.getElementById('view-orc-email-btn').onclick = () => { closeModal('modal-orc-view'); shareEmail(id); };
@@ -1362,6 +1403,71 @@ function buildOrcText(id) {
   txt += `Sinal (${o.sinal_percent||0}%): ${fmtEUR(sinalEur)}\n`;
   return txt;
 }
+// ===== RESUMO DO EVENTO para compartilhar =====
+// Cliente, dia, pratos por grupo (sem quantidade e sem valor), mão de obra,
+// preço de venda total e preço por pessoa.
+function montarResumoEvento(id) {
+  const o = _orcamentos.find(x => x.id === id);
+  if (!o) return '';
+  const itens = _orcItens.filter(i => i.orcamento_id === id);
+  const precoFinal = Number(o.preco_final || o.total || 0);
+  const pax = o.num_pessoas > 0 ? precoFinal / o.num_pessoas : 0;
+
+  let t = `*EVENTO — A BELA SINTRA*\n`;
+  t += `\n*Cliente:* ${o.cliente_nome || '—'}`;
+  t += `\n*Data:* ${fmtDate(o.data_evento)}${o.hora_evento ? ' às ' + o.hora_evento : ''}`;
+  if (o.num_pessoas) t += `\n*Pessoas:* ${o.num_pessoas}`;
+
+  // pratos agrupados por categoria, só os nomes
+  const porCat = {};
+  itens.forEach(i => { const c = i.categoria || 'Outros'; (porCat[c] = porCat[c] || []).push(i.nome_prato); });
+  const cats = _catOrder.filter(c => porCat[c]).concat(Object.keys(porCat).filter(c => !_catOrder.includes(c)));
+  if (cats.length) {
+    t += `\n\n*CARDÁPIO*`;
+    cats.forEach(c => {
+      t += `\n\n_${(_catIcon[c] || '')} ${c}_`;
+      porCat[c].forEach(n => { t += `\n• ${n}`; });
+    });
+  }
+
+  // mão de obra: quem vai e quantos
+  const moQtd = o.mao_obra_qtd || {};
+  const equipe = _maoObraProfis.filter(p => (moQtd[p.id] || 0) > 0);
+  if (equipe.length) {
+    t += `\n\n*MÃO DE OBRA*`;
+    equipe.forEach(p => { t += `\n• ${moQtd[p.id]}× ${p.nome}`; });
+  }
+
+  t += `\n\n*VALOR TOTAL DO EVENTO: ${fmtEUR(precoFinal)}*`;
+  t += `\n*Valor por pessoa: ${fmtEUR(pax)}*`;
+  return t;
+}
+
+let _resumoId = null;
+function abrirResumoEvento(id) {
+  _resumoId = id;
+  const txt = montarResumoEvento(id);
+  document.getElementById('resumo-ev-texto').value = txt;
+  closeModal('modal-orc-view');
+  openModal('modal-resumo-ev');
+}
+function resumoTexto() { return document.getElementById('resumo-ev-texto').value; }
+function resumoWA() { window.open('https://wa.me/?text=' + encodeURIComponent(resumoTexto()), '_blank'); }
+function resumoEmail() {
+  const o = _orcamentos.find(x => x.id === _resumoId) || {};
+  const subj = `Evento ${o.cliente_nome || ''} — ${fmtDate(o.data_evento)}`;
+  window.open(`mailto:?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(resumoTexto())}`, '_blank');
+}
+function resumoCopiar() {
+  const txt = resumoTexto();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => toast('Resumo copiado!')).catch(() => toast('Erro ao copiar', true));
+  } else {
+    const el = document.getElementById('resumo-ev-texto');
+    el.select(); try { document.execCommand('copy'); toast('Resumo copiado!'); } catch (e) { toast('Erro ao copiar', true); }
+  }
+}
+
 function shareWA(id) {
   const txt = buildOrcText(id);
   window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
@@ -1452,6 +1558,9 @@ function initOrcForm(orc=null) {
   _orcMaoObraQtd = {};
   const savedMo = (orc && orc.mao_obra_qtd) ? orc.mao_obra_qtd : {};
   _maoObraProfis.forEach(p => { _orcMaoObraQtd[p.id] = savedMo[p.id] !== undefined ? savedMo[p.id] : 0; });
+  const savedMoP = (orc && orc.mao_obra_preco) ? orc.mao_obra_preco : {};
+  _orcMaoObraPreco = {};
+  _maoObraProfis.forEach(p => { if (savedMoP[p.id] !== undefined && savedMoP[p.id] !== null) _orcMaoObraPreco[p.id] = Number(savedMoP[p.id]); });
   // Reset pax + preço final inputs
   const paxEl = document.getElementById('pax-input');
   if (paxEl) paxEl.value = '';
@@ -1651,10 +1760,30 @@ function updateQtd(idx, val) {
   renderOrcItens(); updatePricing();
 }
 
+// Preço que vale NESTE evento: o ajustado à mão, se existir; senão o do cadastro
+function moPreco(prof) {
+  if (!prof) return 0;
+  const aj = _orcMaoObraPreco[prof.id];
+  return (aj !== undefined && aj !== null && aj !== '') ? Number(aj) || 0 : (Number(prof.preco_evento) || 0);
+}
+function moAjustado(prof) {
+  const aj = _orcMaoObraPreco[prof.id];
+  return aj !== undefined && aj !== null && aj !== '' && Number(aj) !== Number(prof.preco_evento || 0);
+}
+function moMudarPreco(profId, val) {
+  const v = String(val).replace(/\./g,'').replace(',', '.');
+  if (v === '' || isNaN(parseFloat(v))) delete _orcMaoObraPreco[profId];
+  else _orcMaoObraPreco[profId] = parseFloat(v);
+  renderOrcMaoObra(); updatePricing();
+}
+function moVoltarPadrao(profId) {
+  delete _orcMaoObraPreco[profId];
+  renderOrcMaoObra(); updatePricing();
+}
 function calcMoTotal() {
   return Object.entries(_orcMaoObraQtd).reduce((acc, [profId, qty]) => {
     const prof = _maoObraProfis.find(p => p.id === profId);
-    return acc + (prof ? (Number(prof.preco_evento)||0) * (qty||0) : 0);
+    return acc + (prof ? moPreco(prof) * (qty||0) : 0);
   }, 0);
 }
 
@@ -1670,11 +1799,17 @@ function renderOrcMaoObra() {
       <div style="font-size:12px;font-weight:700;color:var(--cinza-escuro);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--cinza)">${g === 'Salão' ? '🍽️' : g === 'Cozinha' ? '👨‍🍳' : '🚛'} ${g}</div>`;
     profis.forEach(p => {
       const qty = _orcMaoObraQtd[p.id] !== undefined ? _orcMaoObraQtd[p.id] : (p.qtd_tipica||0);
-      html += `<div style="display:grid;grid-template-columns:1fr 90px 130px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--cinza)">
-        <span style="font-size:13.5px">${p.nome}</span>
-        <input type="number" min="0" value="${qty}" style="padding:5px 8px;border:1px solid var(--cinza-medio);border-radius:6px;font-size:13px;text-align:center"
-          onchange="_orcMaoObraQtd['${p.id}']=parseInt(this.value)||0;renderOrcMaoObra();updatePricing()" placeholder="Qtd">
-        <span style="font-size:12px;color:var(--cinza-escuro)" id="mo-sub-${p.id}">${fmtEUR(Number(p.preco_evento)||0)} × ${qty} = <strong>${fmtEUR((Number(p.preco_evento)||0)*(qty||0))}</strong></span>
+      const prc = moPreco(p), aj = moAjustado(p);
+      html += `<div class="mo-linha${qty>0?' on':''}">
+        <div class="mo-nome">${p.nome}${aj?' <span class="mo-tag">preço ajustado</span>':''}</div>
+        <label class="mo-campo"><span>Qtd</span>
+          <input type="number" min="0" value="${qty}" inputmode="numeric"
+            onchange="_orcMaoObraQtd['${p.id}']=parseInt(this.value)||0;renderOrcMaoObra();updatePricing()"></label>
+        <label class="mo-campo"><span>Valor por pessoa</span>
+          <input type="text" value="${prc.toFixed(2).replace('.',',')}" inputmode="decimal" class="${aj?'ajustado':''}"
+            onchange="moMudarPreco('${p.id}', this.value)"></label>
+        <div class="mo-sub">${qty>0 ? `${fmtEUR(prc)} × ${qty} = <strong>${fmtEUR(prc*qty)}</strong>` : '<span style="opacity:.6">não entra neste evento</span>'}
+          ${aj?`<button type="button" class="mo-voltar" onclick="moVoltarPadrao('${p.id}')" title="Voltar ao valor do cadastro (${fmtEUR(Number(p.preco_evento)||0)})">↩ padrão</button>`:''}</div>
       </div>`;
     });
     html += '</div>';
@@ -1840,7 +1975,8 @@ async function saveOrc(doPrint=false) {
       notas: document.getElementById('orc-obs').value,
       quebras_percent: quebrasP, margem_percent: margemP, sinal_percent: sinalP,
       preco_final: precoFinal, total: precoFinal,
-      mao_obra_qtd: _orcMaoObraQtd
+      mao_obra_qtd: _orcMaoObraQtd,
+      mao_obra_preco: _orcMaoObraPreco
     };
     if (editId) {
       await sb.from('orcamentos').update(orcData).eq('id', editId);
