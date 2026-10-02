@@ -1508,7 +1508,7 @@ function usarComoModelo(id) {
 // preço de venda total e preço por pessoa.
 function nomeParaCliente(i) {
   const pr = _pratos.find(p => p.id === i.prato_id);
-  return (pr && pr.nome_cliente && pr.nome_cliente.trim()) || i.nome_prato;
+  return (pr && pr.nome_cliente && pr.nome_cliente.trim()) || String(i.nome_prato || '').replace(/\s+und\.?$/i, '').trim();
 }
 function montarResumoEvento(id) {
   const o = _orcamentos.find(x => x.id === id);
@@ -1618,7 +1618,7 @@ function cimHtml(c, preview) {
 html, body { background: #fff; }
 body { width: ${T.w}mm; margin: 0 auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .pagina { --u: 1; --k: ${k}; width: ${T.w}mm; height: ${T.h}mm; overflow: hidden; padding: ${8 * k}mm ${7 * k}mm; text-align: center; color: #111;
-  font-family: Helvetica, Arial, sans-serif; display: flex; flex-direction: column; }
+  font-family: Helvetica, Arial, sans-serif; }
 .logo { display: block; margin: 0 auto; width: ${26 * k}mm; height: auto; }
 .titulo { margin: calc(7mm * var(--k) * var(--u)) 0 calc(4mm * var(--k) * var(--u)); font-size: calc(9.2pt * var(--k) * var(--u)); letter-spacing: calc(2.2pt * var(--k)); text-transform: uppercase; color: #8a5a0a; font-weight: 400; }
 .sec { margin-top: calc(6.5mm * var(--k) * var(--u)); }
@@ -1755,12 +1755,20 @@ function cimPrevia() {
   fr.style.width = wpx + 'px'; fr.style.height = hpx + 'px'; fr.style.transform = 'scale(' + s + ')';
   fr.style.marginRight = (-(wpx - wpx * s)) + 'px';
   fr.srcdoc = cimHtml(_cim, true);
+  fr.onload = () => { setTimeout(() => {
+    try {
+      const pg = fr.contentDocument.querySelector('.pagina');
+      let av = document.getElementById('cim-aviso');
+      if (!av) { av = document.createElement('div'); av.id = 'cim-aviso'; av.style.cssText = 'margin-top:8px;font-size:12.5px;color:#a33;font-weight:600'; box.parentNode.appendChild(av); }
+      av.textContent = pg.scrollHeight > pg.clientHeight + 1 ? '⚠️ Texto grande demais para este tamanho: parte ficará cortada. Use A5/A4 ou reduza os pratos.' : '';
+    } catch (e) { }
+  }, 400); };
 }
 
 function cimSecoesDoEvento(o) {
   const itens = _orcItens.filter(i => i.orcamento_id === o.id);
   const porCat = {};
-  itens.forEach(i => { const cat = i.categoria || 'Outros'; (porCat[cat] = porCat[cat] || []).push(nomeParaCliente(i)); });
+  itens.forEach(i => { let cat = i.categoria || 'Outros'; if (cat === 'Bebida') cat = 'Bebidas'; (porCat[cat] = porCat[cat] || []).push(nomeParaCliente(i)); });
   const cats = _catOrder.filter(x => porCat[x]).concat(Object.keys(porCat).filter(x => !_catOrder.includes(x)));
   const titulos = { 'Prato Principal': 'Pratos Principais' };
   return cats.map(cat => {
@@ -1769,7 +1777,7 @@ function cimSecoesDoEvento(o) {
       nomes = nomes.filter(n => /^petit/i.test(n)).concat(nomes.filter(n => !/^petit/i.test(n)));
       nomes = nomes.map((n, k) => k ? n.charAt(0).toLowerCase() + n.slice(1) : n);
     }
-    return { titulo: titulos[cat] || cat, modo: (cat === 'Coquetel' || cat === 'Café') ? 'corrido' : 'linhas', texto: nomes.join('\n') };
+    return { titulo: titulos[cat] || cat, modo: (cat === 'Coquetel' || cat === 'Café' || cat === 'Bebidas' || cat === 'Bebida') ? 'corrido' : 'linhas', texto: nomes.join('\n') };
   });
 }
 function cimImportar() {
