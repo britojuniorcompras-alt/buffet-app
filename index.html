@@ -457,7 +457,8 @@
               <select id="orc-status"><option value="Pendente">Pendente</option><option value="Confirmado">Confirmado</option><option value="Cancelado">Cancelado</option><option value="Concluído">Concluído</option></select>
             </div>
             <div class="form-group"><label>Taxa de Serviço (R$)</label><input type="number" id="orc-taxa" min="0" value="0" step="0.01" oninput="updatePricing()"></div>
-            <div class="form-group span2"><label>Observações</label><textarea id="orc-obs" placeholder="Notas sobre o evento..."></textarea></div>
+            <div class="form-group span2"><label>Observações <small style="opacity:.6">(internas)</small></label><textarea id="orc-obs" placeholder="Notas sobre o evento..."></textarea></div>
+            <div class="form-group span2"><label>📄 Condições para o cliente <small style="opacity:.6">(aparecem no resumo e no PDF: o que está incluso, não incluso, tributos...)</small></label><textarea id="orc-cond" rows="4" placeholder="Incluso no valor: ...&#10;Não incluso: ...&#10;Acrescentar 10% referente aos tributos."></textarea></div>
           </div>
         </div>
       </div>
@@ -1458,7 +1459,7 @@ function usarComoModelo(id) {
     // sem id → é um orçamento novo; data e hora ficam em branco para você preencher
     cliente_nome: o.cliente_nome, cliente_id: o.cliente_id,
     data_evento: '', hora_evento: '', local_evento: o.local_evento,
-    num_pessoas: o.num_pessoas, status: 'Pendente', notas: o.notas,
+    num_pessoas: o.num_pessoas, status: 'Pendente', notas: o.notas, condicoes: o.condicoes,
     quebras_percent: o.quebras_percent, margem_percent: o.margem_percent, sinal_percent: o.sinal_percent,
     taxa_servico: o.taxa_servico, mao_obra_qtd: o.mao_obra_qtd, mao_obra_preco: o.mao_obra_preco,
     __itensModelo: itens
@@ -1510,6 +1511,7 @@ function montarResumoEvento(id) {
 
   t += `\n\n*VALOR TOTAL DO EVENTO: ${fmtEUR(precoFinal)}*`;
   t += `\n*Valor por pessoa: ${fmtEUR(pax)}*`;
+  if (o.condicoes && o.condicoes.trim()) t += `\n\n*CONDIÇÕES*\n${o.condicoes.trim()}`;
   return t;
 }
 
@@ -1603,6 +1605,9 @@ h1 { font-size: 25px; font-weight: normal; text-align: center; color: #1e4028; l
 .valores div span { display: block; font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase; color: #8a7a4a; margin-bottom: 4px; }
 .valores .tot b { font-size: 25px; color: #1e4028; font-weight: normal; }
 .valores .pp { text-align: right; }
+.cond { margin-top: 14px; font-size: 12px; color: #4a4a3a; line-height: 1.5; border-left: 3px solid #c9b47a; padding: 4px 0 4px 12px; }
+.cond b { display: block; font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase; color: #8a7a4a; margin-bottom: 3px; font-weight: normal; }
+.cond p { margin: 2px 0; }
 .valores .pp b { font-size: 17px; color: #3d5140; font-weight: normal; }
 .rodape { margin-top: auto; padding-top: 18px; text-align: center; font-size: 10px; color: #8a9a8c; line-height: 1.7; }
 .rodape .nome { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #7a5c0a; }
@@ -1663,6 +1668,7 @@ h1 { font-size: 25px; font-weight: normal; text-align: center; color: #1e4028; l
     <div class="tot"><span>Valor total do evento</span><b>${fmtEUR(precoFinal)}</b></div>
     <div class="pp"><span>Valor por pessoa</span><b>${fmtEUR(pax)}</b></div>
   </div>
+  ${o.condicoes && o.condicoes.trim() ? `<div class="cond"><b>Condições</b>${o.condicoes.trim().split('\n').filter(l => l.trim()).map(l => `<p>${esc(l.trim())}</p>`).join('')}</div>` : ''}
   <div class="rodape">
     <div class="nome">A Bela Sintra</div>
     Rua Bela Cintra, 2325 · Cerqueira César · São Paulo/SP<br>
@@ -1736,6 +1742,7 @@ function initOrcForm(orc=null) {
   document.getElementById('orc-taxa').value = 0;
   document.getElementById('orc-status').value = orc ? orc.status||'Pendente' : 'Pendente';
   document.getElementById('orc-obs').value = orc ? orc.notas||'' : '';
+  document.getElementById('orc-cond').value = orc ? orc.condicoes||'' : '';
 
   // Set sliders from saved values
   const margemSaved = orc ? (orc.margem_percent||0) : 0;
@@ -2218,6 +2225,7 @@ async function saveOrc(doPrint=false) {
       num_pessoas: parseInt(document.getElementById('orc-pessoas').value)||1,
       status: document.getElementById('orc-status').value,
       notas: document.getElementById('orc-obs').value,
+      condicoes: document.getElementById('orc-cond').value,
       quebras_percent: quebrasP, margem_percent: margemP, sinal_percent: sinalP,
       preco_final: precoFinal, total: precoFinal,
       mao_obra_qtd: _orcMaoObraQtd,
