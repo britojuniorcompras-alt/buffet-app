@@ -720,6 +720,8 @@
     <div class="form-actions" style="margin-top:20px">
       <button class="btn btn-primary" id="view-orc-edit-btn">✏️ Editar</button>
       <button class="btn btn-ouro" id="view-orc-resumo-btn">📤 Compartilhar resumo</button>
+      <button class="btn btn-outline" id="view-orc-modelo-btn">📋 Usar como modelo</button>
+      <button class="btn btn-outline" id="view-orc-arq-btn">📦 Arquivar</button>
       <button class="btn btn-success" id="view-orc-print-btn">🖨️ Imprimir / PDF</button>
       <button class="btn btn-aviso" id="view-orc-wa-btn">📱 WhatsApp</button>
       <button class="btn btn-outline" id="view-orc-email-btn">📧 Email</button>
@@ -868,12 +870,13 @@ async function loadAll() {
 // DASHBOARD
 function renderDash() {
   const mes = new Date().toISOString().slice(0,7);
-  const orcMes = _orcamentos.filter(o => (o.created_at||'').startsWith(mes));
+  const ativos = _orcamentos.filter(o => !o.arquivado);   // arquivados não contam no painel
+  const orcMes = ativos.filter(o => (o.created_at||'').startsWith(mes));
   const receitaMes = orcMes.reduce((a,o) => a+Number(o.preco_final||o.total||0), 0);
-  const pendentes = _orcamentos.filter(o => o.status==='Pendente').length;
-  const confirmados = _orcamentos.filter(o => o.status==='Confirmado').length;
+  const pendentes = ativos.filter(o => o.status==='Pendente').length;
+  const confirmados = ativos.filter(o => o.status==='Confirmado').length;
   document.getElementById('kpis').innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Total de Orçamentos</div><div class="kpi-val">${_orcamentos.length}</div><div class="kpi-sub">Desde o início</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total de Orçamentos</div><div class="kpi-val">${ativos.length}</div><div class="kpi-sub">Desde o início</div></div>
     <div class="kpi-card verde"><div class="kpi-label">Receita Estimada (Mês)</div><div class="kpi-val" style="font-size:22px">${fmtEUR(receitaMes)}</div><div class="kpi-sub">${mes}</div></div>
     <div class="kpi-card aviso"><div class="kpi-label">Eventos Pendentes</div><div class="kpi-val">${pendentes}</div><div class="kpi-sub">Aguardam confirmação</div></div>
     <div class="kpi-card perigo"><div class="kpi-label">Confirmados</div><div class="kpi-val">${confirmados}</div><div class="kpi-sub">Eventos agendados</div></div>
@@ -881,7 +884,7 @@ function renderDash() {
     <div class="kpi-card verde"><div class="kpi-label">Clientes</div><div class="kpi-val">${_clientes.length}</div><div class="kpi-sub">Registados</div></div>`;
 
   const hoje = new Date().toISOString().slice(0,10);
-  const proximos = _orcamentos.filter(o => o.data_evento >= hoje).sort((a,b)=>a.data_evento>b.data_evento?1:-1).slice(0,5);
+  const proximos = ativos.filter(o => o.data_evento >= hoje).sort((a,b)=>a.data_evento>b.data_evento?1:-1).slice(0,5);
   document.getElementById('dash-eventos').innerHTML = proximos.length ? proximos.map(o=>`
     <div style="padding:10px 0;border-bottom:1px solid var(--cinza);display:flex;justify-content:space-between;align-items:center">
       <div><div style="font-weight:700;font-size:14px">${o.cliente_nome||'—'}</div>
@@ -889,7 +892,7 @@ function renderDash() {
       <span class="badge badge-${(o.status||'pendente').toLowerCase()}">${o.status}</span>
     </div>`).join('') : '<div style="color:var(--cinza-escuro);font-size:13px;padding:10px 0">Nenhum evento futuro</div>';
 
-  const recentes = [..._orcamentos].slice(0,5);
+  const recentes = [...ativos].slice(0,5);
   document.getElementById('dash-recentes').innerHTML = recentes.length ? recentes.map(o=>`
     <div style="padding:10px 0;border-bottom:1px solid var(--cinza);display:flex;justify-content:space-between;align-items:center">
       <div><div style="font-weight:700;font-size:14px">#${String(o.numero).padStart(3,'0')} · ${o.cliente_nome||'—'}</div>
@@ -905,7 +908,7 @@ function renderDash() {
     const key = d.toISOString().slice(0,7);
     receitaPorMes[key] = 0;
   }
-  _orcamentos.forEach(o => {
+  ativos.forEach(o => {
     const key = (o.created_at||'').slice(0,7);
     if (key in receitaPorMes) receitaPorMes[key] += Number(o.preco_final||o.total||0);
   });
@@ -923,12 +926,12 @@ function renderDash() {
     }).join('') + '</div>';
 
   // ── Conversão de Orçamentos ──
-  const totalOrc = _orcamentos.length || 1;
+  const totalOrc = ativos.length || 1;
   const stCounts = {Pendente:0,Confirmado:0,Cancelado:0,Concluído:0};
-  _orcamentos.forEach(o => { const s = o.status||'Pendente'; stCounts[s] = (stCounts[s]||0)+1; });
+  ativos.forEach(o => { const s = o.status||'Pendente'; stCounts[s] = (stCounts[s]||0)+1; });
   const stColors = {Pendente:'var(--amarelo)',Confirmado:'var(--verde)',Cancelado:'var(--vermelho)',Concluído:'#6c757d'};
   const stIcons = {Pendente:'⏳',Confirmado:'✅',Cancelado:'❌',Concluído:'🏁'};
-  const taxaConv = _orcamentos.length ? Math.round((stCounts.Confirmado/_orcamentos.length)*100) : 0;
+  const taxaConv = ativos.length ? Math.round((stCounts.Confirmado/ativos.length)*100) : 0;
   document.getElementById('dash-conversao').innerHTML =
     `<div style="font-size:28px;font-weight:700;color:var(--sucesso);margin-bottom:4px">${taxaConv}%</div>
     <div style="font-size:12px;color:var(--cinza-escuro);margin-bottom:12px">Taxa de conversão</div>` +
@@ -949,7 +952,7 @@ function renderDash() {
 
   // ── Top Clientes ──
   const clienteReceita = {};
-  _orcamentos.forEach(o => {
+  ativos.forEach(o => {
     const c = o.cliente_nome||'Desconhecido';
     if (!clienteReceita[c]) clienteReceita[c] = {total:0,eventos:0};
     clienteReceita[c].total += Number(o.preco_final||o.total||0);
@@ -973,7 +976,7 @@ function renderDash() {
   const lim30 = new Date(); lim30.setDate(lim30.getDate()+30);
   const hojeStr = hoje30.toISOString().slice(0,10);
   const limStr = lim30.toISOString().slice(0,10);
-  const prox30 = _orcamentos.filter(o => o.data_evento >= hojeStr && o.data_evento <= limStr);
+  const prox30 = ativos.filter(o => o.data_evento >= hojeStr && o.data_evento <= limStr);
   const prox30conf = prox30.filter(o => o.status==='Confirmado');
   const receitaConf30 = prox30conf.reduce((a,o)=>a+Number(o.preco_final||o.total||0),0);
   const totalPessoas30 = prox30conf.reduce((a,o)=>a+Number(o.num_pessoas||0),0);
@@ -993,11 +996,11 @@ function renderDash() {
     </div>`;
 
   // ── Indicadores de Desempenho ──
-  const ticketMedio = _orcamentos.length ? _orcamentos.reduce((a,o)=>a+Number(o.preco_final||o.total||0),0) / _orcamentos.length : 0;
-  const totalPessoas = _orcamentos.reduce((a,o)=>a+Number(o.num_pessoas||0),0);
-  const ticketPessoa = totalPessoas ? _orcamentos.reduce((a,o)=>a+Number(o.preco_final||o.total||0),0) / totalPessoas : 0;
-  const receitaTotal = _orcamentos.filter(o=>o.status==='Confirmado').reduce((a,o)=>a+Number(o.preco_final||o.total||0),0);
-  const mediasPessoas = _orcamentos.length ? Math.round(totalPessoas/_orcamentos.length) : 0;
+  const ticketMedio = ativos.length ? ativos.reduce((a,o)=>a+Number(o.preco_final||o.total||0),0) / ativos.length : 0;
+  const totalPessoas = ativos.reduce((a,o)=>a+Number(o.num_pessoas||0),0);
+  const ticketPessoa = totalPessoas ? ativos.reduce((a,o)=>a+Number(o.preco_final||o.total||0),0) / totalPessoas : 0;
+  const receitaTotal = ativos.filter(o=>o.status==='Confirmado').reduce((a,o)=>a+Number(o.preco_final||o.total||0),0);
+  const mediasPessoas = ativos.length ? Math.round(totalPessoas/ativos.length) : 0;
   document.getElementById('dash-kpis2').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div style="border:1px solid var(--cinza);border-radius:8px;padding:12px">
@@ -1024,23 +1027,29 @@ let _orcamentos_filtered = [];
 let _orcActiveStatus = '';
 function setOrcTab(status) { _orcActiveStatus = status; renderOrc(); }
 function renderOrc() {
-  const statuses = ['', ...[...new Set(_orcamentos.map(o=>o.status).filter(Boolean))]];
+  const ativos = _orcamentos.filter(o => !o.arquivado);
+  const statuses = ['', ...[...new Set(ativos.map(o=>o.status).filter(Boolean))]];
   const tabs = document.getElementById('orc-status-tabs');
+  const nArq = _orcamentos.filter(o => o.arquivado).length;
   if (tabs) {
-    tabs.innerHTML = statuses.map(s => {
-      const lbl = s || 'Todos';
-      const cnt = s ? _orcamentos.filter(o=>o.status===s).length : _orcamentos.length;
-      const act = _orcActiveStatus === s;
-      return `<button onclick="setOrcTab('${s}')" style="padding:5px 14px;border-radius:20px;border:1.5px solid ${act?'var(--verde)':'rgba(30,64,40,0.18)'};background:${act?'rgba(30,64,40,0.12)':'rgba(30,64,40,0.04)'};color:${act?'var(--verde)':'var(--texto)'};font-size:12px;font-weight:600;cursor:pointer">${lbl} <span style="opacity:0.7">(${cnt})</span></button>`;
-    }).join('');
+    const botao = (valor, lbl, cnt, cor) => {
+      const act = _orcActiveStatus === valor;
+      const c = cor || 'var(--verde)';
+      return `<button onclick="setOrcTab('${valor}')" style="padding:5px 14px;border-radius:20px;border:1.5px solid ${act?c:'rgba(30,64,40,0.18)'};background:${act?'rgba(30,64,40,0.12)':'rgba(30,64,40,0.04)'};color:${act?c:'var(--texto)'};font-size:12px;font-weight:600;cursor:pointer">${lbl} <span style="opacity:0.7">(${cnt})</span></button>`;
+    };
+    tabs.innerHTML = statuses.map(st => botao(st, st || 'Todos', st ? ativos.filter(o=>o.status===st).length : ativos.length)).join('')
+      + (nArq ? botao('__arq__', '📦 Arquivados', nArq, 'var(--aviso)') : '');
   }
   applyOrcFilters();
 }
 function filterOrc() { applyOrcFilters(); }
 function applyOrcFilters() {
   const q = (document.getElementById('search-orc')?.value||'').toLowerCase();
+  const soArquivados = _orcActiveStatus === '__arq__';
   _orcamentos_filtered = _orcamentos.filter(o => {
-    const ms = !_orcActiveStatus || o.status===_orcActiveStatus;
+    // arquivados ficam fora da lista do dia a dia; só aparecem na aba 📦 Arquivados
+    if (soArquivados ? !o.arquivado : o.arquivado) return false;
+    const ms = soArquivados || !_orcActiveStatus || o.status===_orcActiveStatus;
     const mq = !q || (o.cliente_nome||'').toLowerCase().includes(q) || String(o.numero).includes(q) || (o.status||'').toLowerCase().includes(q);
     return ms && mq;
   });
@@ -1199,6 +1208,10 @@ function renderOrcTable() {
               <td>
                 <button class="btn btn-outline btn-sm" onclick="viewOrc('${o.id}')">👁 Ver</button>
                 <button class="btn btn-outline btn-sm" onclick="editOrc('${o.id}')">✏️ Editar</button>
+                <button class="btn btn-outline btn-sm" title="Criar um evento novo com este cardápio e equipe" onclick="usarComoModelo('${o.id}')">📋 Usar</button>
+                ${o.arquivado
+                  ? `<button class="btn btn-outline btn-sm" title="Tirar do arquivo" onclick="desarquivarOrc('${o.id}')">↩ Reativar</button>`
+                  : `<button class="btn btn-outline btn-sm" title="Guardar no arquivo (não fechou)" onclick="arquivarOrc('${o.id}')">📦 Arquivar</button>`}
                 <button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑</button>
               </td>
             </tr>`).join('')}
@@ -1298,6 +1311,10 @@ function viewOrc(id) {
 
   document.getElementById('view-orc-edit-btn').onclick = () => { closeModal('modal-orc-view'); editOrc(id); };
   document.getElementById('view-orc-resumo-btn').onclick = () => { abrirResumoEvento(id); };
+  document.getElementById('view-orc-modelo-btn').onclick = () => { usarComoModelo(id); };
+  const btnArq = document.getElementById('view-orc-arq-btn');
+  btnArq.textContent = o.arquivado ? '↩ Tirar do arquivo' : '📦 Arquivar';
+  btnArq.onclick = () => { o.arquivado ? desarquivarOrc(id) : arquivarOrc(id); };
   document.getElementById('view-orc-print-btn').onclick = () => { closeModal('modal-orc-view'); printOrc(id); };
   document.getElementById('view-orc-wa-btn').onclick = () => { closeModal('modal-orc-view'); shareWA(id); };
   document.getElementById('view-orc-email-btn').onclick = () => { closeModal('modal-orc-view'); shareEmail(id); };
@@ -1404,6 +1421,53 @@ function buildOrcText(id) {
   txt += `Sinal (${o.sinal_percent||0}%): ${fmtEUR(sinalEur)}\n`;
   return txt;
 }
+// ===== ARQUIVAR eventos que não fecharam (ficam guardados para reaproveitar) =====
+async function arquivarOrc(id) {
+  const o = _orcamentos.find(x => x.id === id);
+  if (!o) return;
+  if (!confirm(`Arquivar o evento de ${o.cliente_nome || '—'} (${fmtDate(o.data_evento)})?\n\nEle sai da lista do dia a dia, mas continua guardado no app — dá para consultar e usar como modelo depois.`)) return;
+  showLoader(true);
+  const r = await sb.from('orcamentos').update({ arquivado: true, arquivado_em: new Date().toISOString() }).eq('id', id);
+  showLoader(false);
+  if (r && r.error) { toast('Erro ao arquivar: ' + r.error.message, true); return; }
+  o.arquivado = true; o.arquivado_em = new Date().toISOString();
+  closeModal('modal-orc-view');
+  toast('📦 Evento arquivado');
+  renderOrc(); try { renderDash(); } catch (e) { }
+}
+async function desarquivarOrc(id) {
+  const o = _orcamentos.find(x => x.id === id);
+  if (!o) return;
+  showLoader(true);
+  const r = await sb.from('orcamentos').update({ arquivado: false, arquivado_em: null }).eq('id', id);
+  showLoader(false);
+  if (r && r.error) { toast('Erro: ' + r.error.message, true); return; }
+  o.arquivado = false; o.arquivado_em = null;
+  closeModal('modal-orc-view');
+  toast('Evento de volta à lista');
+  renderOrc(); try { renderDash(); } catch (e) { }
+}
+
+// Aproveitar os dados: abre um orçamento NOVO já com o cardápio, a equipe e os percentuais deste
+function usarComoModelo(id) {
+  const o = _orcamentos.find(x => x.id === id);
+  if (!o) return;
+  const itens = _orcItens.filter(i => i.orcamento_id === id);
+  const modelo = {
+    // sem id → é um orçamento novo; data e hora ficam em branco para você preencher
+    cliente_nome: o.cliente_nome, cliente_id: o.cliente_id,
+    data_evento: '', hora_evento: '', local_evento: o.local_evento,
+    num_pessoas: o.num_pessoas, status: 'Pendente', notas: o.notas,
+    quebras_percent: o.quebras_percent, margem_percent: o.margem_percent, sinal_percent: o.sinal_percent,
+    taxa_servico: o.taxa_servico, mao_obra_qtd: o.mao_obra_qtd, mao_obra_preco: o.mao_obra_preco,
+    __itensModelo: itens
+  };
+  closeModal('modal-orc-view');
+  nav('novo-orc');
+  initOrcForm(modelo);
+  toast(`📋 Cardápio e equipe copiados de ${o.cliente_nome || 'evento'} — confira a data e salve`);
+}
+
 // ===== RESUMO DO EVENTO para compartilhar =====
 // Cliente, dia, pratos por grupo (sem quantidade e sem valor), mão de obra,
 // preço de venda total e preço por pessoa.
@@ -1653,9 +1717,12 @@ function copyOrcText(id) {
 
 // FORM ORÇAMENTO
 function initOrcForm(orc=null) {
-  document.getElementById('orc-edit-id').value = orc ? orc.id : '';
-  document.getElementById('form-orc-title').textContent = orc ? 'Editar Orçamento' : 'Novo Orçamento';
-  document.getElementById('form-orc-sub').textContent = orc ? `#${String(orc.numero).padStart(3,'0')}` : 'Preencha os dados do evento';
+  // "usar como modelo" traz os dados mas NÃO tem id: é evento novo, não edição
+  const ehModelo = !!(orc && orc.__itensModelo);
+  document.getElementById('orc-edit-id').value = (orc && orc.id && !ehModelo) ? orc.id : '';
+  document.getElementById('form-orc-title').textContent = (orc && !ehModelo) ? 'Editar Orçamento' : 'Novo Orçamento';
+  document.getElementById('form-orc-sub').textContent = ehModelo ? '📋 Copiado de outro evento — confira a data e salve'
+    : (orc ? `#${String(orc.numero).padStart(3,'0')}` : 'Preencha os dados do evento');
   document.getElementById('orc-cliente-nome').value = orc ? orc.cliente_nome||'' : '';
   document.getElementById('orc-data').value = orc ? orc.data_evento||'' : '';
   document.getElementById('orc-hora').value = orc ? orc.hora_evento||'' : '';
@@ -1715,7 +1782,12 @@ function initOrcForm(orc=null) {
   if (bpIn) bpIn.value = '';
   bpChips();
 
-  if (orc) {
+  if (orc && orc.__itensModelo) {
+    // veio de "usar como modelo": copia o cardápio, mas é um evento novo
+    _orcFormItens = orc.__itensModelo.map(i=>({
+      pratoId: i.prato_id, nome: i.nome_prato, cat: i.categoria||'', qtd: i.quantidade, preco: Number(i.preco_unit), sub: Number(i.subtotal)
+    }));
+  } else if (orc) {
     _orcFormItens = _orcItens.filter(i=>i.orcamento_id===orc.id).map(i=>({
       pratoId: i.prato_id, nome: i.nome_prato, cat: i.categoria||'', qtd: i.quantidade, preco: Number(i.preco_unit), sub: Number(i.subtotal)
     }));
