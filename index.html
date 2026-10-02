@@ -704,6 +704,7 @@
     <p style="font-size:13px;color:var(--cinza-escuro);margin:6px 0 10px">Confira abaixo — dá para editar antes de enviar.</p>
     <textarea id="resumo-ev-texto" class="resumo-ev-area" rows="16"></textarea>
     <div class="form-actions" style="margin-top:16px">
+      <button class="btn btn-success" onclick="resumoPDF()">🖨️ PDF / Imprimir</button>
       <button class="btn btn-aviso" onclick="resumoWA()">📱 WhatsApp</button>
       <button class="btn btn-outline" onclick="resumoEmail()">📧 E-mail</button>
       <button class="btn btn-outline" onclick="resumoCopiar()">🔗 Copiar</button>
@@ -1466,6 +1467,173 @@ function resumoCopiar() {
     const el = document.getElementById('resumo-ev-texto');
     el.select(); try { document.execCommand('copy'); toast('Resumo copiado!'); } catch (e) { toast('Erro ao copiar', true); }
   }
+}
+
+// ===== Resumo do evento em PDF, no estilo da casa =====
+function resumoPDF() {
+  const id = _resumoId;
+  const o = _orcamentos.find(x => x.id === id);
+  if (!o) return;
+  const itens = _orcItens.filter(i => i.orcamento_id === id);
+  const precoFinal = Number(o.preco_final || o.total || 0);
+  const pax = o.num_pessoas > 0 ? precoFinal / o.num_pessoas : 0;
+  const esc = t => String(t == null ? '' : t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+  const porCat = {};
+  itens.forEach(i => { const c = i.categoria || 'Outros'; (porCat[c] = porCat[c] || []).push(i.nome_prato); });
+  const cats = _catOrder.filter(c => porCat[c]).concat(Object.keys(porCat).filter(c => !_catOrder.includes(c)));
+  const cardapio = cats.map(c => `
+      <section class="curso">
+        <h2>${esc(c)}</h2>
+        <ul>${porCat[c].map(n => `<li>${esc(n)}</li>`).join('')}</ul>
+      </section>`).join('');
+
+  const moQtd = o.mao_obra_qtd || {};
+  const equipe = _maoObraProfis.filter(p => (moQtd[p.id] || 0) > 0);
+  const equipeHtml = equipe.length ? `
+      <section class="equipe">
+        <h2>Equipe de Serviço</h2>
+        <ul>${equipe.map(p => `<li><b>${moQtd[p.id]}</b> ${esc(p.nome)}</li>`).join('')}</ul>
+      </section>` : '';
+
+  const logo = document.querySelector('#sidebar .logo-area img');
+  const logoSrc = logo ? logo.getAttribute('src') : '';
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
+<title>Evento ${esc(o.cliente_nome || '')} - ${fmtDate(o.data_evento).replace(/\//g,'-')}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Georgia, 'Times New Roman', serif; color: #1a2e1e; background: #e9efe9; }
+.folha { width: 210mm; min-height: 297mm; margin: 0 auto; background: #fffdf8; padding: 17mm 20mm 14mm; position: relative;
+  display: flex; flex-direction: column; }
+.folha::before { content: ''; position: absolute; inset: 10mm; border: 1px solid #c9b47a; pointer-events: none; }
+.topo { text-align: center; padding-bottom: 8px; }
+.topo img { height: 58px; margin-bottom: 5px; }
+.topo .casa { font-size: 11px; letter-spacing: 5px; text-transform: uppercase; color: #7a5c0a; }
+.regua { display: flex; align-items: center; gap: 12px; margin: 12px 0 14px; }
+.regua span { flex: 1; height: 1px; background: #c9b47a; }
+.regua b { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: #7a5c0a; font-weight: normal; }
+h1 { font-size: 25px; font-weight: normal; text-align: center; color: #1e4028; letter-spacing: 0.5px; }
+.sub { text-align: center; font-size: 11.5px; letter-spacing: 2.5px; text-transform: uppercase; color: #6b7d6e; margin-top: 6px; }
+.dados { display: flex; justify-content: center; gap: 34px; flex-wrap: wrap; margin: 14px 0 2px; text-align: center; }
+.dados div span { display: block; font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase; color: #8a9a8c; margin-bottom: 3px; }
+.dados div b { font-size: 15px; font-weight: normal; color: #1a2e1e; }
+.curso { margin-top: 13px; break-inside: avoid; }
+.curso h2, .equipe h2 { font-size: 11px; letter-spacing: 3.5px; text-transform: uppercase; color: #7a5c0a; font-weight: normal;
+  text-align: center; margin-bottom: 9px; }
+.curso h2::after, .equipe h2::after { content: ''; display: block; width: 34px; height: 1px; background: #c9b47a; margin: 7px auto 0; }
+.curso ul, .equipe ul { list-style: none; text-align: center; }
+.curso li { font-size: 14.5px; line-height: 1.62; color: #243a28; }
+.equipe { margin-top: 18px; break-inside: avoid; }
+.equipe ul { display: flex; justify-content: center; gap: 10px 26px; flex-wrap: wrap; }
+.equipe li { font-size: 13.5px; color: #3d5140; }
+.valores { margin-top: 20px; border: 1px solid #c9b47a; background: #fbf7ec; padding: 18px 22px; display: flex;
+  justify-content: space-between; align-items: center; gap: 18px; break-inside: avoid; }
+.valores div span { display: block; font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase; color: #8a7a4a; margin-bottom: 4px; }
+.valores .tot b { font-size: 25px; color: #1e4028; font-weight: normal; }
+.valores .pp { text-align: right; }
+.valores .pp b { font-size: 17px; color: #3d5140; font-weight: normal; }
+.rodape { margin-top: auto; padding-top: 18px; text-align: center; font-size: 10px; color: #8a9a8c; line-height: 1.7; }
+.rodape .nome { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #7a5c0a; }
+.barra { position: sticky; top: 0; display: flex; gap: 8px; padding: 10px; background: #1e4028; }
+.barra button { flex: 1; padding: 13px; font-size: 15px; font-weight: bold; border: none; border-radius: 8px;
+  background: #c9b47a; color: #1a2e1e; font-family: Arial, sans-serif; cursor: pointer; }
+.barra button.sec { background: rgba(255,255,255,0.15); color: #fff; }
+@media print { .barra { display: none; } body { background: #fff; } .folha { margin: 0; box-shadow: none; min-height: 285mm; } }
+/* cardápio grande: encolhe um pouco para caber numa folha só */
+.folha.compacto .curso { margin-top: 9px; }
+.folha.compacto .curso li { font-size: 13px; line-height: 1.45; }
+.folha.compacto .curso h2, .folha.compacto .equipe h2 { font-size: 10px; margin-bottom: 6px; }
+.folha.compacto .topo img { height: 46px; }
+.folha.compacto h1 { font-size: 22px; }
+.folha.compacto .regua { margin: 9px 0 10px; }
+.folha.compacto .equipe { margin-top: 12px; }
+.folha.compacto .valores { margin-top: 14px; padding: 13px 18px; }
+.folha.compacto .valores .tot b { font-size: 22px; }
+.folha.compacto .rodape { padding-top: 12px; }
+/* cardápio sempre numa coluna só, um prato por linha */
+/* nível 2: cardápio bem grande — aperta mais, ainda numa folha */
+.folha.apertado .curso { margin-top: 6px; }
+.folha.apertado .curso li { font-size: 11.8px; line-height: 1.34; }
+.folha.apertado .curso h2, .folha.apertado .equipe h2 { font-size: 9.2px; margin-bottom: 4px; letter-spacing: 3px; }
+.folha.apertado .curso h2::after, .folha.apertado .equipe h2::after { margin-top: 4px; }
+.folha.apertado .topo img { height: 38px; }
+.folha.apertado .topo { padding-bottom: 4px; }
+.folha.apertado h1 { font-size: 20px; }
+.folha.apertado .sub { font-size: 10.5px; margin-top: 4px; }
+.folha.apertado .dados { margin: 9px 0 0; }
+.folha.apertado .dados div b { font-size: 13px; }
+.folha.apertado .regua { margin: 7px 0 7px; }
+.folha.apertado .equipe { margin-top: 10px; }
+.folha.apertado .equipe li { font-size: 12px; }
+.folha.apertado .valores { margin-top: 11px; padding: 11px 16px; }
+.folha.apertado .valores .tot b { font-size: 20px; }
+.folha.apertado .valores .pp b { font-size: 15px; }
+.folha.apertado .rodape { padding-top: 10px; }
+.folha.longo::before { display: none; }   /* passou de uma folha: tira a moldura, que ficaria cortada */
+@media screen { .folha { box-shadow: 0 6px 30px rgba(0,0,0,0.15); margin: 14px auto; } }
+</style></head><body>
+<div class="barra"><button onclick="window.print()">🖨️ Salvar PDF / Imprimir</button><button class="sec" onclick="window.close()">Fechar</button></div>
+<div class="folha">
+  <div class="topo">
+    ${logoSrc ? `<img src="${logoSrc}" alt="">` : ''}
+    <div class="casa">A Bela Sintra</div>
+  </div>
+  <div class="regua"><span></span><b>Proposta de Evento</b><span></span></div>
+  <h1>${esc(o.cliente_nome || '—')}</h1>
+  <div class="sub">${fmtDate(o.data_evento)}${o.hora_evento ? ' · ' + esc(o.hora_evento) : ''}</div>
+  <div class="dados">
+    ${o.num_pessoas ? `<div><span>Convidados</span><b>${o.num_pessoas}</b></div>` : ''}
+    ${o.local_evento ? `<div><span>Local</span><b>${esc(o.local_evento)}</b></div>` : ''}
+  </div>
+  ${cardapio ? `<div class="regua"><span></span><b>Cardápio</b><span></span></div><div class="cardapio">${cardapio}</div>` : ''}
+  ${equipeHtml}
+  <div class="valores">
+    <div class="tot"><span>Valor total do evento</span><b>${fmtEUR(precoFinal)}</b></div>
+    <div class="pp"><span>Valor por pessoa</span><b>${fmtEUR(pax)}</b></div>
+  </div>
+  <div class="rodape">
+    <div class="nome">A Bela Sintra</div>
+    Rua Bela Cintra, 2325 · Cerqueira César · São Paulo/SP<br>
+    (11) 3086-2510 · @restauranteabelasintra
+  </div>
+</div>
+<script>
+  // roda depois da folha montada: se não couber numa A4, aperta; se ainda não couber, 2 colunas
+  (function(){ var f = document.querySelector('.folha'); if (!f) return;
+    // mede só o conteúdo (sem a altura mínima da folha), senão acha que nunca cabe
+    var alturaConteudo = function(){
+      var antes = f.style.minHeight;
+      f.style.minHeight = '0';
+      var h = f.scrollHeight;
+      f.style.minHeight = antes;
+      return h;
+    };
+    var ajusta = function(){
+      f.classList.remove('compacto'); f.classList.remove('apertado'); f.classList.remove('longo');
+      if (alturaConteudo() <= 1115) return;
+      f.classList.add('compacto');                          // aperta o espaçamento
+      if (alturaConteudo() <= 1115) return;
+      f.classList.add('apertado');                          // aperta mais ainda
+      if (alturaConteudo() > 1115) f.classList.add('longo'); // cardápio enorme: segue para a 2ª folha
+    };
+    ajusta(); window.addEventListener('load', ajusta); setTimeout(ajusta, 500);
+  })();
+<\/script>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { toast('Permita abrir uma nova aba para gerar o PDF', true); return; }
+  w.document.open(); w.document.write(html); w.document.close(); w.focus();
+  const imgs = w.document.images;
+  const abrir = () => { try { w.print(); } catch (e) {} };
+  if (!imgs.length) { setTimeout(abrir, 350); return; }
+  let faltam = imgs.length, feito = false;
+  const talvez = () => { if (!feito && --faltam <= 0) { feito = true; setTimeout(abrir, 250); } };
+  for (let i = 0; i < imgs.length; i++) { if (imgs[i].complete) talvez(); else { imgs[i].onload = talvez; imgs[i].onerror = talvez; } }
+  setTimeout(() => { if (!feito) { feito = true; abrir(); } }, 4000);
 }
 
 function shareWA(id) {
