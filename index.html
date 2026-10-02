@@ -755,6 +755,7 @@
       <button class="btn btn-primary" id="view-orc-edit-btn">✏️ Editar</button>
       <button class="btn btn-ouro" id="view-orc-resumo-btn">📤 Compartilhar resumo</button>
       <button class="btn btn-outline" id="view-orc-modelo-btn">📋 Usar como modelo</button>
+      <button class="btn btn-outline" id="view-orc-cim-btn">🖨️ Cardápio impresso</button>
       <button class="btn btn-outline" id="view-orc-arq-btn">📦 Arquivar</button>
       <button class="btn btn-success" id="view-orc-print-btn">🖨️ Imprimir / PDF</button>
       <button class="btn btn-aviso" id="view-orc-wa-btn">📱 WhatsApp</button>
@@ -1345,6 +1346,7 @@ function viewOrc(id) {
   document.getElementById('view-orc-edit-btn').onclick = () => { closeModal('modal-orc-view'); editOrc(id); };
   document.getElementById('view-orc-resumo-btn').onclick = () => { abrirResumoEvento(id); };
   document.getElementById('view-orc-modelo-btn').onclick = () => { usarComoModelo(id); };
+  document.getElementById('view-orc-cim-btn').onclick = () => { closeModal('modal-orc-view'); cimNovoDeEvento(id); };
   const btnArq = document.getElementById('view-orc-arq-btn');
   btnArq.textContent = o.arquivado ? '↩ Tirar do arquivo' : '📦 Arquivar';
   btnArq.onclick = () => { o.arquivado ? desarquivarOrc(id) : arquivarOrc(id); };
@@ -1663,11 +1665,16 @@ function cimMostrarLista() {
   document.getElementById('cim-editor').style.display = 'none';
   const el = document.getElementById('cim-lista');
   el.style.display = 'block';
+  const evs = (_orcamentos || []).filter(o => !o.arquivado);
+  const barra = '<div class="cim-card" style="margin-bottom:16px;flex-direction:row;align-items:center;flex-wrap:wrap"><b style="color:var(--verde)">📥 Criar a partir de um evento:</b>' +
+    '<select id="cim-evento-lista" style="flex:1;min-width:200px;padding:9px;border:1.5px solid rgba(30,64,40,0.18);border-radius:8px;font-size:14px;background:#fff"><option value="">— escolha o evento (ex: ABBC) —</option>' +
+    evs.map(o => '<option value="' + o.id + '">' + cimEsc((o.cliente_nome || '—') + ' · ' + fmtDate(o.data_evento)) + '</option>').join('') + '</select>' +
+    '<button class="btn btn-primary" onclick="cimNovoDeEventoSel()">Criar cardápio</button></div>';
   if (!_cimLista.length) {
-    el.innerHTML = '<div class="empty-state"><div class="big">🖨️</div><p>Nenhum cardápio criado ainda.<br>Clique em <b>Novo Cardápio</b> para montar o primeiro.</p></div>';
+    el.innerHTML = barra + '<div class="empty-state"><div class="big">🖨️</div><p>Nenhum cardápio criado ainda.<br>Escolha um evento acima ou clique em <b>Novo Cardápio</b>.</p></div>';
     return;
   }
-  el.innerHTML = '<div class="cim-grid">' + _cimLista.map(c =>
+  el.innerHTML = barra + '<div class="cim-grid">' + _cimLista.map(c =>
     '<div class="cim-card"><h3>' + cimEsc(c.titulo || '(sem título)') + '</h3>' +
     '<small>' + (c.secoes || []).length + ' seções · ' + (CIM_TAMANHOS[c.tamanho] || CIM_TAMANHOS.dl).n + '</small>' +
     '<div class="acts"><button class="btn btn-primary btn-sm" onclick="cimAbrir(\'' + c.id + '\')">✏️ Abrir</button>' +
@@ -1750,15 +1757,13 @@ function cimPrevia() {
   fr.srcdoc = cimHtml(_cim, true);
 }
 
-function cimImportar() {
-  const id = document.getElementById('cim-evento').value; if (!id) { toast('Escolha um evento', true); return; }
-  const o = _orcamentos.find(x => x.id === id); if (!o) return;
-  const itens = _orcItens.filter(i => i.orcamento_id === id);
+function cimSecoesDoEvento(o) {
+  const itens = _orcItens.filter(i => i.orcamento_id === o.id);
   const porCat = {};
   itens.forEach(i => { const cat = i.categoria || 'Outros'; (porCat[cat] = porCat[cat] || []).push(nomeParaCliente(i)); });
   const cats = _catOrder.filter(x => porCat[x]).concat(Object.keys(porCat).filter(x => !_catOrder.includes(x)));
   const titulos = { 'Prato Principal': 'Pratos Principais' };
-  _cim.secoes = cats.map(cat => {
+  return cats.map(cat => {
     let nomes = porCat[cat];
     if (cat === 'Café') {
       nomes = nomes.filter(n => /^petit/i.test(n)).concat(nomes.filter(n => !/^petit/i.test(n)));
@@ -1766,10 +1771,24 @@ function cimImportar() {
     }
     return { titulo: titulos[cat] || cat, modo: (cat === 'Coquetel' || cat === 'Café') ? 'corrido' : 'linhas', texto: nomes.join('\n') };
   });
+}
+function cimImportar() {
+  const id = document.getElementById('cim-evento').value; if (!id) { toast('Escolha um evento', true); return; }
+  const o = _orcamentos.find(x => x.id === id); if (!o) return;
+  _cim.secoes = cimSecoesDoEvento(o);
   if (!_cim.titulo) _cim.titulo = (o.cliente_nome || '').toUpperCase();
   cimRenderEditor();
   toast('Pratos importados — ajuste o que precisar');
 }
+// cria um cardápio novo já preenchido com o cardápio orçado de um evento
+function cimNovoDeEvento(id) {
+  const o = _orcamentos.find(x => x.id === id); if (!o) { toast('Escolha um evento', true); return; }
+  if (!_orcItens.some(i => i.orcamento_id === id)) { toast('Esse evento ainda não tem pratos no orçamento', true); return; }
+  _cim = { id: '', titulo: (o.cliente_nome || '').toUpperCase(), tamanho: 'dl', secoes: cimSecoesDoEvento(o) };
+  cimMostrarEditor();
+  toast('Cardápio criado a partir do evento — ajuste e imprima');
+}
+function cimNovoDeEventoSel() { cimNovoDeEvento(document.getElementById('cim-evento-lista').value); }
 
 async function cimSalvar() {
   const c = _cim;
