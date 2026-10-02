@@ -675,7 +675,8 @@
   <div class="modal">
     <h3 id="modal-prato-title">Novo Prato</h3>
     <div class="form-grid">
-      <div class="form-group span2"><label>Nome do Prato *</label><input type="text" id="prato-nome" placeholder="Ex: Bacalhau à Brás"></div>
+      <div class="form-group span2"><label>Nome do Prato * <small style="opacity:.6">(uso interno)</small></label><input type="text" id="prato-nome" placeholder="Ex: Bacalhau à Brás"></div>
+      <div class="form-group span2"><label>✨ Nome para o cliente <small style="opacity:.6">(aparece no resumo/PDF; vazio = usa o nome interno)</small></label><input type="text" id="prato-nome-cli" placeholder="Ex: Lascas de bacalhau douradas com batata palha e ovos caipira"></div>
       <div class="form-group"><label>Categoria *</label>
         <select id="prato-cat">
           <option value="Coquetel">Coquetel</option>
@@ -1471,6 +1472,10 @@ function usarComoModelo(id) {
 // ===== RESUMO DO EVENTO para compartilhar =====
 // Cliente, dia, pratos por grupo (sem quantidade e sem valor), mão de obra,
 // preço de venda total e preço por pessoa.
+function nomeParaCliente(i) {
+  const pr = _pratos.find(p => p.id === i.prato_id);
+  return (pr && pr.nome_cliente && pr.nome_cliente.trim()) || i.nome_prato;
+}
 function montarResumoEvento(id) {
   const o = _orcamentos.find(x => x.id === id);
   if (!o) return '';
@@ -1485,7 +1490,7 @@ function montarResumoEvento(id) {
 
   // pratos agrupados por categoria, só os nomes
   const porCat = {};
-  itens.forEach(i => { const c = i.categoria || 'Outros'; (porCat[c] = porCat[c] || []).push(i.nome_prato); });
+  itens.forEach(i => { const c = i.categoria || 'Outros'; (porCat[c] = porCat[c] || []).push(nomeParaCliente(i)); });
   const cats = _catOrder.filter(c => porCat[c]).concat(Object.keys(porCat).filter(c => !_catOrder.includes(c)));
   if (cats.length) {
     t += `\n\n*CARDÁPIO*`;
@@ -1544,7 +1549,7 @@ function resumoPDF() {
   const esc = t => String(t == null ? '' : t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
   const porCat = {};
-  itens.forEach(i => { const c = i.categoria || 'Outros'; (porCat[c] = porCat[c] || []).push(i.nome_prato); });
+  itens.forEach(i => { const c = i.categoria || 'Outros'; (porCat[c] = porCat[c] || []).push(nomeParaCliente(i)); });
   const cats = _catOrder.filter(c => porCat[c]).concat(Object.keys(porCat).filter(c => !_catOrder.includes(c)));
   const cardapio = cats.map(c => `
       <section class="curso">
@@ -2394,12 +2399,13 @@ function renderCard() {
   const q = (document.getElementById('search-card')||{}).value||'';
   const filtered = _pratos.filter(p =>
     (_cardCat==='Todos'||p.categoria===_cardCat) &&
-    (p.nome.toLowerCase().includes(q.toLowerCase())||p.categoria.toLowerCase().includes(q.toLowerCase()))
+    (p.nome.toLowerCase().includes(q.toLowerCase())||(p.nome_cliente||'').toLowerCase().includes(q.toLowerCase())||p.categoria.toLowerCase().includes(q.toLowerCase()))
   );
   document.getElementById('card-grid').innerHTML = filtered.length ? filtered.map(p=>`
     <div class="prato-card">
       <span class="badge-cat">${p.categoria}</span>
       <div class="prato-nome">${p.nome}</div>
+      ${p.nome_cliente ? `<div style="font-size:12px;color:#8fd19e;margin:2px 0 4px">✨ ${p.nome_cliente}</div>` : `<div style="font-size:11px;color:#c98;margin:2px 0 4px;opacity:.8">sem nome p/ cliente</div>`}
       <div class="prato-preco">${fmtEUR(p.preco_unit)}</div>
       <div class="prato-desc">${p.descricao||''}</div>
       <div class="prato-actions">
@@ -2414,6 +2420,7 @@ function filterCard() { renderCard(); }
 function openPratoModal(p=null) {
   document.getElementById('modal-prato-title').textContent = p ? 'Editar Prato' : 'Novo Prato';
   document.getElementById('prato-nome').value = p ? p.nome : '';
+  document.getElementById('prato-nome-cli').value = p ? (p.nome_cliente||'') : '';
   document.getElementById('prato-cat').value = p ? p.categoria : 'Entrada';
   document.getElementById('prato-preco').value = p ? p.preco_unit : 0;
   document.getElementById('prato-desc').value = p ? p.descricao||'' : '';
@@ -2425,7 +2432,7 @@ function editPrato(id) { openPratoModal(_pratos.find(p=>p.id===id)); }
 async function savePrato() {
   const nome = document.getElementById('prato-nome').value.trim();
   if (!nome) { toast('Nome obrigatório', true); return; }
-  const data = { nome, categoria: document.getElementById('prato-cat').value, preco_unit: parseFloat(document.getElementById('prato-preco').value)||0, descricao: document.getElementById('prato-desc').value };
+  const data = { nome, nome_cliente: (document.getElementById('prato-nome-cli').value.trim() || null), categoria: document.getElementById('prato-cat').value, preco_unit: parseFloat(document.getElementById('prato-preco').value)||0, descricao: document.getElementById('prato-desc').value };
   const editId = document.getElementById('prato-edit-id').value;
   showLoader(true);
   if (editId) await sb.from('pratos').update(data).eq('id', editId);
