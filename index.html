@@ -1482,36 +1482,38 @@ function montarResumoEvento(id) {
   if (!o) return '';
   const itens = _orcItens.filter(i => i.orcamento_id === id);
   const precoFinal = Number(o.preco_final || o.total || 0);
-  const pax = o.num_pessoas > 0 ? precoFinal / o.num_pessoas : 0;
+  const dm = (o.data_evento || '').split('-');
+  const dataTxt = dm.length === 3 ? `${dm[2]}/${dm[1]}` : fmtDate(o.data_evento);
+  const brl = v => 'R$' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const juntar = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1];
 
-  let t = `*EVENTO — A BELA SINTRA*\n`;
-  t += `\n*Cliente:* ${o.cliente_nome || '—'}`;
-  t += `\n*Data:* ${fmtDate(o.data_evento)}${o.hora_evento ? ' às ' + o.hora_evento : ''}`;
-  if (o.num_pessoas) t += `\n*Pessoas:* ${o.num_pessoas}`;
+  // Formato simples, em linhas, pronto para colar no WhatsApp/e-mail do cliente
+  let t = `Evento: ${dataTxt}${o.hora_evento ? ' às ' + o.hora_evento : ''}.`;
+  if (o.num_pessoas) t += `\n${o.num_pessoas} pessoas.`;
 
-  // pratos agrupados por categoria, só os nomes
   const porCat = {};
   itens.forEach(i => { const c = i.categoria || 'Outros'; (porCat[c] = porCat[c] || []).push(nomeParaCliente(i)); });
   const cats = _catOrder.filter(c => porCat[c]).concat(Object.keys(porCat).filter(c => !_catOrder.includes(c)));
-  if (cats.length) {
-    t += `\n\n*CARDÁPIO*`;
-    cats.forEach(c => {
-      t += `\n\n_${(_catIcon[c] || '')} ${c}_`;
-      porCat[c].forEach(n => { t += `\n• ${n}`; });
-    });
-  }
+  const rotulo = { 'Coquetel': 'Coquetel volante', 'Prato Principal': '' };
+  cats.forEach(c => {
+    let nomes = porCat[c];
+    const lab = c in rotulo ? rotulo[c] : c;
+    if (c === 'Café') {
+      // petit four primeiro; o resto vem em seguida, tudo numa frase só
+      nomes = nomes.filter(n => /^petit/i.test(n)).concat(nomes.filter(n => !/^petit/i.test(n)));
+      t += `\n${lab}: ${juntar(nomes.map((n, k) => k ? n.charAt(0).toLowerCase() + n.slice(1) : n.charAt(0).toLowerCase() + n.slice(1)))}.`;
+    } else if (!lab) {
+      nomes.forEach(n => { t += `\n${n}.`; });
+    } else if (nomes.length === 1) {
+      t += `\n${lab}: ${nomes[0]}.`;
+    } else {
+      t += `\n${lab}:`;
+      nomes.forEach(n => { t += `\n${n}`; });
+    }
+  });
 
-  // mão de obra: quem vai e quantos
-  const moQtd = o.mao_obra_qtd || {};
-  const equipe = _maoObraProfis.filter(p => (moQtd[p.id] || 0) > 0);
-  if (equipe.length) {
-    t += `\n\n*MÃO DE OBRA*`;
-    equipe.forEach(p => { t += `\n• ${moQtd[p.id]}× ${p.nome}`; });
-  }
-
-  t += `\n\n*VALOR TOTAL DO EVENTO: ${fmtEUR(precoFinal)}*`;
-  t += `\n*Valor por pessoa: ${fmtEUR(pax)}*`;
-  if (o.condicoes && o.condicoes.trim()) t += `\n\n*CONDIÇÕES*\n${o.condicoes.trim()}`;
+  t += `\nValor: ${brl(precoFinal)}.`;
+  if (o.condicoes && o.condicoes.trim()) t += `\n${o.condicoes.trim()}`;
   return t;
 }
 
