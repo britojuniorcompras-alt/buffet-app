@@ -84,6 +84,48 @@
   .form-group input, .form-group select, .form-group textarea { padding: 9px 12px; border: 1.5px solid rgba(30,64,40,0.18); border-radius: 8px; font-size: 13.5px; background: #ffffff; color: var(--texto); transition: border-color 0.15s; }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--verde); background: #ffffff; box-shadow: 0 0 0 3px rgba(30,64,40,0.08); }
   .form-group textarea { resize: vertical; min-height: 80px; }
+  /* ===== Busca de pratos do cardápio: letra grande e filtro na hora ===== */
+  .busca-prato { background: var(--cinza); border-radius: 12px; padding: 14px; margin-bottom: 16px; min-width: 0; max-width: 100%; overflow: hidden; }
+  .bp-campo { position: relative; display: flex; align-items: center; }
+  .bp-lupa { position: absolute; left: 16px; font-size: 22px; pointer-events: none; opacity: 0.75; }
+  .bp-campo input { width: 100%; padding: 16px 48px 16px 52px; border: 2px solid rgba(30,64,40,0.22); border-radius: 12px;
+    font-size: 18px; font-weight: 600; background: #fff; color: var(--texto); font-family: inherit; }
+  .bp-campo input:focus { outline: none; border-color: var(--verde); box-shadow: 0 0 0 4px rgba(30,64,40,0.1); }
+  .bp-campo input::placeholder { font-weight: 500; font-size: 16px; }
+  .bp-limpar { position: absolute; right: 8px; width: 36px; height: 36px; border: none; background: transparent;
+    font-size: 18px; color: rgba(30,64,40,0.5); cursor: pointer; border-radius: 50%; display: none; }
+  .bp-limpar.on { display: block; }
+  .bp-chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 12px 0 4px; min-width: 0; max-width: 100%; }
+  .bp-chips button { flex: 0 1 auto; max-width: 100%; overflow: hidden; text-overflow: ellipsis; padding: 9px 14px; border-radius: 999px; border: 1.5px solid rgba(30,64,40,0.2);
+    background: #fff; color: var(--texto); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .bp-chips button.on { background: var(--verde); color: #e8f2ea; border-color: var(--verde); }
+  .bp-qtd-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 2px 4px; flex-wrap: wrap; }
+  .bp-qtd-linha label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(30,64,40,0.82); }
+  .bp-qtd { display: flex; align-items: center; gap: 0; }
+  .bp-qtd button { width: 44px; height: 44px; border: 1.5px solid rgba(30,64,40,0.2); background: #fff; font-size: 22px;
+    font-weight: 700; cursor: pointer; color: var(--verde); font-family: inherit; }
+  .bp-qtd button:first-child { border-radius: 10px 0 0 10px; }
+  .bp-qtd button:last-child { border-radius: 0 10px 10px 0; }
+  .bp-qtd input { width: 64px; height: 44px; text-align: center; font-size: 18px; font-weight: 700; border: 1.5px solid rgba(30,64,40,0.2);
+    border-left: none; border-right: none; background: #fff; color: var(--texto); font-family: inherit; }
+  .bp-lista { max-height: 340px; overflow-y: auto; margin-top: 8px; border-radius: 10px; background: #fff; border: 1px solid rgba(30,64,40,0.12); }
+  .bp-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px 14px; border: none;
+    border-bottom: 1px solid rgba(30,64,40,0.08); background: #fff; cursor: pointer; font-family: inherit; }
+  .bp-item:last-child { border-bottom: none; }
+  .bp-item:active { background: #eef5ef; }
+  .bp-item.sel { background: #eef5ef; box-shadow: inset 4px 0 0 var(--verde); }
+  .bp-item-nome { font-size: 16px; font-weight: 700; color: var(--texto); line-height: 1.3; overflow-wrap: anywhere; }
+  .bp-item-nome mark { background: #ffe08a; color: inherit; border-radius: 3px; padding: 0 1px; }
+  .bp-item-sub { font-size: 13px; color: rgba(30,64,40,0.7); margin-top: 3px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .bp-item-cat { font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .bp-item-preco { margin-left: auto; font-size: 16px; font-weight: 800; color: var(--verde-claro); white-space: nowrap; }
+  .bp-ja { font-size: 11.5px; font-weight: 700; color: var(--sucesso); }
+  .bp-vazio { padding: 22px 14px; text-align: center; font-size: 15px; color: rgba(30,64,40,0.7); }
+  .bp-contagem { font-size: 12.5px; color: rgba(30,64,40,0.7); padding: 8px 2px 0; }
+  @media (max-width: 700px) {
+    .bp-lista { max-height: 300px; }
+    .bp-item-preco { font-size: 15px; }
+  }
   .form-group input::placeholder, .form-group textarea::placeholder, .search-bar::placeholder { color: rgba(30,64,40,0.5); }
   .form-group select option, select option { background: #ffffff; color: #1a2e1e; }
   .form-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
@@ -399,12 +441,24 @@
       <div class="panel">
         <div class="panel-header"><h3>Itens do Cardápio</h3></div>
         <div class="panel-body">
-          <div style="display:flex;gap:12px;margin-bottom:14px;align-items:flex-end;flex-wrap:wrap">
-            <div class="form-group" style="flex:1;min-width:200px"><label>Adicionar Prato</label>
-              <select id="orc-sel-prato"><option value="">— Selecione um prato —</option></select>
+          <div class="busca-prato">
+            <div class="bp-campo">
+              <span class="bp-lupa">🔍</span>
+              <input type="text" id="bp-input" placeholder="Buscar prato pelo nome…" autocomplete="off"
+                     oninput="bpFiltrar()" onfocus="bpFiltrar()" onkeydown="bpTecla(event)">
+              <button type="button" class="bp-limpar" id="bp-limpar" onclick="bpLimpar()" title="Limpar">✕</button>
             </div>
-            <div class="form-group" style="width:100px"><label>Qtd</label><input type="number" id="orc-qtd" min="1" value="1"></div>
-            <button class="btn btn-ouro" onclick="addItemOrc()">➕ Adicionar</button>
+            <div class="bp-chips" id="bp-chips"></div>
+            <div class="bp-qtd-linha">
+              <label for="orc-qtd">Quantidade a adicionar</label>
+              <div class="bp-qtd">
+                <button type="button" onclick="bpQtd(-1)">−</button>
+                <input type="number" id="orc-qtd" min="1" value="1" inputmode="numeric">
+                <button type="button" onclick="bpQtd(1)">+</button>
+              </div>
+            </div>
+            <div class="bp-lista" id="bp-lista"></div>
+            <select id="orc-sel-prato" style="display:none"><option value="">—</option></select>
           </div>
           <table class="orc-itens-table">
             <thead><tr><th>Prato</th><th></th><th>Qtd</th><th>Preço Unit.</th><th>Subtotal</th><th></th></tr></thead>
@@ -1381,6 +1435,12 @@ function initOrcForm(orc=null) {
     sp.appendChild(og);
   }
 
+  // busca de pratos: começa limpa, com todos os pratos à mostra
+  _bpCat = ''; _bpSel = 0;
+  const bpIn = document.getElementById('bp-input');
+  if (bpIn) bpIn.value = '';
+  bpChips();
+
   if (orc) {
     _orcFormItens = _orcItens.filter(i=>i.orcamento_id===orc.id).map(i=>({
       pratoId: i.prato_id, nome: i.nome_prato, cat: i.categoria||'', qtd: i.quantidade, preco: Number(i.preco_unit), sub: Number(i.subtotal)
@@ -1404,9 +1464,8 @@ function initOrcForm(orc=null) {
   updatePricing(finalGuardado > 0 ? finalGuardado : undefined);
 }
 
-function addItemOrc() {
-  const selPrato = document.getElementById('orc-sel-prato');
-  const pratoId = selPrato.value;
+function addItemOrc(idDireto) {
+  const pratoId = idDireto || document.getElementById('orc-sel-prato').value;
   if (!pratoId) { toast('Selecione um prato', true); return; }
   const prato = _pratos.find(p=>p.id===pratoId);
   if (!prato) return;
@@ -1415,6 +1474,116 @@ function addItemOrc() {
   if (existing) { existing.qtd += qtd; existing.sub = existing.qtd * existing.preco; }
   else _orcFormItens.push({ pratoId: prato.id, nome: prato.nome, cat: prato.categoria, qtd, preco: Number(prato.preco_unit), sub: qtd * Number(prato.preco_unit) });
   renderOrcItens(); updatePricing();
+  if (idDireto) {
+    toast(`${qtd}× ${prato.nome} no cardápio`);
+    bpFiltrar();
+  }
+}
+
+// ===== Busca de pratos: letra grande, filtro na hora e toque para adicionar =====
+let _bpCat = '';     // categoria do chip escolhido
+let _bpSel = 0;      // item destacado (teclado)
+
+function bpNorm(t) {
+  return String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function bpTermos() {
+  const el = document.getElementById('bp-input');
+  return bpNorm(el ? el.value : '').split(/\s+/).filter(Boolean);
+}
+// acha os pratos que batem com TODAS as palavras digitadas, em qualquer ordem
+function bpResultados() {
+  const termos = bpTermos();
+  return _pratos.filter(p => {
+    if (_bpCat && (p.categoria||'') !== _bpCat) return false;
+    if (!termos.length) return true;
+    const alvo = bpNorm(p.nome) + ' ' + bpNorm(p.categoria);
+    return termos.every(t => alvo.includes(t));
+  });
+}
+function bpDestacar(nome) {
+  const termos = bpTermos();
+  let html = nome.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  if (!termos.length) return html;
+  const norm = bpNorm(nome);
+  const marcas = [];
+  termos.forEach(t => { let i = norm.indexOf(t); while (i >= 0) { marcas.push([i, i+t.length]); i = norm.indexOf(t, i+1); } });
+  if (!marcas.length) return html;
+  marcas.sort((a,b)=>a[0]-b[0]);
+  const juntas = [];
+  marcas.forEach(m => {
+    const u = juntas[juntas.length-1];
+    if (u && m[0] <= u[1]) u[1] = Math.max(u[1], m[1]); else juntas.push([m[0], m[1]]);
+  });
+  let out = '', pos = 0;
+  juntas.forEach(([a,bb]) => { out += html.slice(pos,a) + '<mark>' + html.slice(a,bb) + '</mark>'; pos = bb; });
+  return out + html.slice(pos);
+}
+function bpChips() {
+  const el = document.getElementById('bp-chips');
+  if (!el) return;
+  const cats = _catOrder.filter(c => _pratos.some(p => (p.categoria||'') === c));
+  el.innerHTML = `<button type="button" class="${_bpCat?'':'on'}" onclick="bpCat('')">Todos (${_pratos.length})</button>` +
+    cats.map(c => {
+      const n = _pratos.filter(p=>(p.categoria||'')===c).length;
+      return `<button type="button" class="${_bpCat===c?'on':''}" onclick="bpCat('${c.replace(/'/g,"\\'")}')">${_catIcon[c]||''} ${c} (${n})</button>`;
+    }).join('');
+}
+function bpCat(c) { _bpCat = (_bpCat === c) ? '' : c; _bpSel = 0; bpChips(); bpFiltrar(); }
+function bpQtd(d) {
+  const el = document.getElementById('orc-qtd');
+  el.value = Math.max(1, (parseInt(el.value)||1) + d);
+}
+function bpLimpar() {
+  const el = document.getElementById('bp-input');
+  if (el) { el.value = ''; el.focus(); }
+  _bpSel = 0; bpFiltrar();
+}
+function bpFiltrar() {
+  const lista = document.getElementById('bp-lista');
+  if (!lista) return;
+  const campo = document.getElementById('bp-input');
+  const bt = document.getElementById('bp-limpar');
+  if (bt) bt.className = 'bp-limpar' + (campo && campo.value ? ' on' : '');
+  const res = bpResultados();
+  if (_bpSel >= res.length) _bpSel = 0;
+  if (!res.length) {
+    lista.innerHTML = `<div class="bp-vazio">Nenhum prato encontrado${campo&&campo.value?` para “${campo.value}”`:''}.<br><small>Tente outra palavra ou toque em “Todos”.</small></div>`;
+    return;
+  }
+  lista.innerHTML = res.map((p, i) => {
+    const jaTem = _orcFormItens.find(it => it.pratoId === p.id);
+    const cat = p.categoria || 'Outros';
+    return `<button type="button" class="bp-item${i===_bpSel?' sel':''}" onclick="addItemOrc('${p.id}')">
+      <div style="flex:1;min-width:0">
+        <div class="bp-item-nome">${bpDestacar(p.nome)}</div>
+        <div class="bp-item-sub">
+          <span class="bp-item-cat" style="background:${_catColor[cat]||'#eee'};color:${_catText[cat]||'#333'}">${_catIcon[cat]||''} ${cat}</span>
+          ${jaTem ? `<span class="bp-ja">✓ já no cardápio (${jaTem.qtd}×)</span>` : ''}
+        </div>
+      </div>
+      <span class="bp-item-preco">${fmtEUR(p.preco_unit)}</span>
+    </button>`;
+  }).join('') + `<div class="bp-contagem" style="padding:10px 14px">${res.length} prato${res.length>1?'s':''} · toque para adicionar</div>`;
+}
+// Enter adiciona o primeiro da lista; setas andam pela lista
+function bpTecla(ev) {
+  const res = bpResultados();
+  if (ev.key === 'Enter') {
+    ev.preventDefault();
+    if (res[_bpSel]) addItemOrc(res[_bpSel].id);
+    return;
+  }
+  if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+    ev.preventDefault();
+    if (!res.length) return;
+    _bpSel = (_bpSel + (ev.key === 'ArrowDown' ? 1 : -1) + res.length) % res.length;
+    bpFiltrar();
+    const el = document.querySelector('.bp-item.sel');
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+    return;
+  }
+  if (ev.key === 'Escape') { bpLimpar(); }
 }
 
 function removeItemOrc(idx) { _orcFormItens.splice(idx, 1); renderOrcItens(); updatePricing(); }
@@ -1425,6 +1594,7 @@ const _catColor = {'Coquetel':'#e8f5e9','Entrada':'#fff8e1','Prato Principal':'#
 const _catText  = {'Coquetel':'#1b5e20','Entrada':'#f57f17','Prato Principal':'#0d47a1','Sobremesa':'#880e4f','Café':'#4e342e','Bebidas':'#283593','Bebida':'#283593'};
 
 function renderOrcItens() {
+  if (document.getElementById('bp-lista')) setTimeout(bpFiltrar, 0);
   const tbody = document.getElementById('orc-itens-tbody');
   const empty = document.getElementById('orc-itens-empty');
   if (!_orcFormItens.length) {
