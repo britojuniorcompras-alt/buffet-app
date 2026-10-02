@@ -1612,7 +1612,31 @@ function cimHtml(c, preview) {
     return '<section class="sec' + (linhas.length ? '' : ' solo') + '"><h2>' + cimEsc(s.titulo || '') + '</h2>' + corpo + '</section>';
   }).join('');
 
-  const css = `
+  const elegante = (c.estilo || 'elegante') === 'elegante';
+  const cssEleg = `
+@page { size: ${T.w}mm ${T.h}mm; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #fffdf7; }
+body { width: ${T.w}mm; margin: 0 auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pagina { --u: 1; --k: ${k}; position: relative; width: ${T.w}mm; height: ${T.h}mm; overflow: hidden; padding: ${10 * k}mm ${9 * k}mm; text-align: center; color: #1a2e1e;
+  font-family: Georgia, 'Times New Roman', serif; background: #fffdf7; }
+.pagina::before { content: ''; position: absolute; inset: ${4 * k}mm; border: 0.25mm solid #c9b47a; pointer-events: none; }
+.logo { display: block; margin: 0 auto; width: ${25 * k}mm; height: auto; }
+.regua { display: flex; align-items: center; gap: ${2.5 * k}mm; margin-top: calc(4mm * var(--k) * var(--u)); }
+.regua span { flex: 1; height: 0.2mm; background: #c9b47a; }
+.regua b { font-weight: 400; font-size: calc(6.4pt * var(--k) * var(--u)); letter-spacing: calc(2.8pt * var(--k)); text-transform: uppercase; color: #7a5c0a; }
+.titulo { margin: calc(3mm * var(--k) * var(--u)) 0 calc(1mm * var(--k) * var(--u)); font-size: calc(15pt * var(--k) * var(--u)); letter-spacing: calc(0.5pt * var(--k)); color: #1e4028; font-weight: 400; line-height: 1.15; }
+.corpo { margin-top: calc(1mm * var(--k)); }
+.sec { margin-top: calc(5.2mm * var(--k) * var(--u)); }
+.sec h2 { font-weight: 400; font-size: calc(6.8pt * var(--k) * var(--u)); letter-spacing: calc(3pt * var(--k)); text-transform: uppercase; color: #7a5c0a; line-height: 1.3; }
+.sec h2::after { content: ''; display: block; width: calc(9mm * var(--k)); height: 0.2mm; background: #c9b47a; margin: calc(1.4mm * var(--k) * var(--u)) auto calc(1.6mm * var(--k) * var(--u)); }
+.sec.solo h2 { font-size: calc(8.6pt * var(--k) * var(--u)); letter-spacing: calc(0.4pt * var(--k)); text-transform: none; color: #1e4028; }
+.sec.solo h2::after { display: none; }
+.it { font-size: calc(9pt * var(--k) * var(--u)); color: #1a2e1e; line-height: 1.5; margin-top: calc(0.6mm * var(--k) * var(--u)); }
+.ds { font-size: calc(6.5pt * var(--k) * var(--u)); color: #6b7d6e; font-style: italic; line-height: 1.4; }
+.ou { font-size: calc(7.6pt * var(--k) * var(--u)); color: #8a7a4a; font-style: italic; margin-top: calc(0.8mm * var(--k) * var(--u)); }
+`;
+  const css = elegante ? cssEleg : `
 @page { size: ${T.w}mm ${T.h}mm; margin: 0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: #fff; }
@@ -1646,8 +1670,9 @@ body { width: ${T.w}mm; margin: 0 auto; -webkit-print-color-adjust: exact; print
     '<style>' + css + (preview ? 'body{margin:0}' : '@media screen{body{background:#e9e9e4;padding:70px 0 20px}.pagina{background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.25)}.barra{position:fixed;top:0;left:0;right:0;background:#1e4028;padding:10px;display:flex;gap:8px;z-index:9}.barra button{flex:1;padding:12px;font-size:15px;font-weight:bold;border:0;border-radius:8px;background:#c9b47a;color:#1e2a1e;cursor:pointer}.barra button.s{background:#3e5c46;color:#fff}} @media print{.barra{display:none}}') +
     '</style></head><body>' +
     (preview ? '' : '<div class="barra"><button onclick="window.print()">🖨️ Imprimir / Salvar PDF</button><button class="s" onclick="window.close()">Fechar</button></div>') +
-    '<div class="pagina"><img class="logo" src="' + CIM_LOGO + '" alt="a bela Sintra">' +
-    (c.titulo ? '<div class="titulo">' + cimEsc(c.titulo) + '</div>' : '') + secoes + '</div>' + fit + '</body></html>';
+    '<div class="pagina"><img class="logo" src="' + (elegante ? LOGO_BELA_SINTRA_BUFFET : CIM_LOGO) + '" alt="a bela Sintra">' +
+    (elegante ? '<div class="regua"><span></span><b>Cardápio</b><span></span></div>' : '') +
+    (c.titulo ? '<div class="titulo">' + cimEsc(c.titulo) + '</div>' : '') + '<div class="corpo">' + secoes + '</div></div>' + fit + '</body></html>';
 }
 
 // ---------- lista ----------
@@ -1685,7 +1710,7 @@ function cimMostrarLista() {
 
 // ---------- editor ----------
 function cimNovo() {
-  _cim = { id: '', titulo: '', tamanho: 'dl', secoes: [
+  _cim = { id: '', titulo: '', tamanho: 'dl', estilo: 'elegante', secoes: [
     { titulo: 'Coquetel', modo: 'corrido', texto: '' },
     { titulo: 'Entrada', modo: 'ou', texto: '' },
     { titulo: 'Pratos Principais', modo: 'ou', texto: '' },
@@ -1696,7 +1721,7 @@ function cimNovo() {
 }
 function cimAbrir(id) {
   const c = _cimLista.find(x => x.id === id); if (!c) return;
-  _cim = JSON.parse(JSON.stringify({ id: c.id, titulo: c.titulo, tamanho: c.tamanho || 'dl', secoes: c.secoes || [] }));
+  _cim = JSON.parse(JSON.stringify({ id: c.id, titulo: c.titulo, tamanho: c.tamanho || 'dl', estilo: c.estilo || 'elegante', secoes: c.secoes || [] }));
   cimMostrarEditor();
 }
 function cimMostrarEditor() {
@@ -1726,6 +1751,9 @@ function cimRenderEditor() {
     '<div class="cim-edit"><div>' +
     '<div class="form-grid" style="margin-bottom:12px">' +
     '<div class="form-group"><label>Título do cardápio</label><input id="cim-titulo" value="' + cimEsc(c.titulo) + '" placeholder="Ex: FRIENDS" oninput="cimCampo(\'titulo\',this.value)"></div>' +
+    '<div class="form-group"><label>Estilo</label><select onchange="cimCampo(\'estilo\',this.value)">' +
+    '<option value="elegante"' + ((c.estilo || 'elegante') === 'elegante' ? ' selected' : '') + '>Elegante (igual à proposta)</option>' +
+    '<option value="classico"' + (c.estilo === 'classico' ? ' selected' : '') + '>Clássico (modelo Friends)</option></select></div>' +
     '<div class="form-group"><label>Tamanho do papel</label><select onchange="cimCampo(\'tamanho\',this.value)">' +
     Object.keys(CIM_TAMANHOS).map(k => '<option value="' + k + '"' + (c.tamanho === k ? ' selected' : '') + '>' + CIM_TAMANHOS[k].n + '</option>').join('') + '</select></div>' +
     '<div class="form-group span2"><label>Importar pratos de um evento <small style="opacity:.6">(usa os nomes para o cliente; substitui as seções abaixo)</small></label>' +
@@ -1739,7 +1767,7 @@ function cimRenderEditor() {
     '</div><div class="cim-prev-wrap"><div style="font-size:12px;font-weight:700;text-transform:uppercase;color:rgba(30,64,40,.6);margin-bottom:6px">Prévia</div><div class="cim-prev-box" id="cim-prev-box"></div></div></div>';
   cimPrevia();
 }
-function cimCampo(k, v) { _cim[k] = v; if (k === 'tamanho') cimPrevia(); else cimPreviaDebounce(); }
+function cimCampo(k, v) { _cim[k] = v; if (k === 'tamanho' || k === 'estilo') cimPrevia(); else cimPreviaDebounce(); }
 function cimSec(i, k, v) { _cim.secoes[i][k] = v; cimPreviaDebounce(); }
 function cimMover(i, d) { const j = i + d; if (j < 0 || j >= _cim.secoes.length) return; const a = _cim.secoes; [a[i], a[j]] = [a[j], a[i]]; cimRenderEditor(); }
 function cimRemover(i) { _cim.secoes.splice(i, 1); cimRenderEditor(); }
@@ -1792,7 +1820,7 @@ function cimImportar() {
 function cimNovoDeEvento(id) {
   const o = _orcamentos.find(x => x.id === id); if (!o) { toast('Escolha um evento', true); return; }
   if (!_orcItens.some(i => i.orcamento_id === id)) { toast('Esse evento ainda não tem pratos no orçamento', true); return; }
-  _cim = { id: '', titulo: (o.cliente_nome || '').toUpperCase(), tamanho: 'dl', secoes: cimSecoesDoEvento(o) };
+  _cim = { id: '', titulo: (o.cliente_nome || '').toUpperCase(), tamanho: 'dl', estilo: 'elegante', secoes: cimSecoesDoEvento(o) };
   cimMostrarEditor();
   toast('Cardápio criado a partir do evento — ajuste e imprima');
 }
@@ -1801,7 +1829,7 @@ function cimNovoDeEventoSel() { cimNovoDeEvento(document.getElementById('cim-eve
 async function cimSalvar() {
   const c = _cim;
   if (!c.titulo.trim()) { toast('Dê um título ao cardápio', true); return; }
-  const row = { titulo: c.titulo.trim(), tamanho: c.tamanho, secoes: c.secoes, updated_at: new Date().toISOString() };
+  const row = { titulo: c.titulo.trim(), tamanho: c.tamanho, estilo: c.estilo || 'elegante', secoes: c.secoes, updated_at: new Date().toISOString() };
   showLoader(true);
   let res;
   if (c.id) res = await sb.from('cardapios_impressos').update(row).eq('id', c.id).select();
@@ -1817,7 +1845,7 @@ function cimVoltar() { _cim = null; renderImpressao(); }
 async function cimDuplicar(id) {
   const c = _cimLista.find(x => x.id === id); if (!c) return;
   showLoader(true);
-  const { error } = await sb.from('cardapios_impressos').insert({ titulo: (c.titulo || '') + ' (cópia)', tamanho: c.tamanho, secoes: c.secoes });
+  const { error } = await sb.from('cardapios_impressos').insert({ titulo: (c.titulo || '') + ' (cópia)', tamanho: c.tamanho, estilo: c.estilo || 'elegante', secoes: c.secoes });
   showLoader(false);
   if (error) { toast('Erro ao duplicar', true); return; }
   toast('Cardápio duplicado'); renderImpressao();
