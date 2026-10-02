@@ -707,7 +707,6 @@
     <textarea id="resumo-ev-texto" class="resumo-ev-area" rows="16"></textarea>
     <div class="form-actions" style="margin-top:16px">
       <button class="btn btn-success" onclick="resumoPDF('elegante')">🖨️ PDF elegante</button>
-      <button class="btn btn-outline" onclick="resumoPDF('linhas')">📄 PDF em linhas</button>
       <button class="btn btn-aviso" onclick="resumoWA()">📱 WhatsApp</button>
       <button class="btn btn-outline" onclick="resumoEmail()">📧 E-mail</button>
       <button class="btn btn-outline" onclick="resumoCopiar()">🔗 Copiar</button>
@@ -1567,11 +1566,22 @@ function resumoPDF(modo) {
   const porCat = {};
   itens.forEach(i => { const c = i.categoria || 'Outros'; (porCat[c] = porCat[c] || []).push(nomeParaCliente(i)); });
   const cats = _catOrder.filter(c => porCat[c]).concat(Object.keys(porCat).filter(c => !_catOrder.includes(c)));
-  const cardapio = cats.map(c => `
+  const tituloCat = { 'Coquetel': 'Coquetel volante' };
+  const juntarNomes = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1];
+  const cardapio = cats.map(c => {
+    let nomes = porCat[c];
+    if (c === 'Café') {
+      // petit four primeiro; o resto na mesma frase: "petit four com suspiros, pé de moleque, chocolate e pastéis de nata"
+      nomes = nomes.filter(n => /^petit/i.test(n)).concat(nomes.filter(n => !/^petit/i.test(n)));
+      nomes = [juntarNomes(nomes.map(n => n.charAt(0).toLowerCase() + n.slice(1)))];
+      nomes[0] = nomes[0].charAt(0).toUpperCase() + nomes[0].slice(1);
+    }
+    return `
       <section class="curso">
-        <h2>${esc(c)}</h2>
-        <ul>${porCat[c].map(n => `<li>${esc(n)}</li>`).join('')}</ul>
-      </section>`).join('');
+        <h2>${esc(tituloCat[c] || c)}</h2>
+        <ul>${nomes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>
+      </section>`;
+  }).join('');
 
   const moQtd = o.mao_obra_qtd || {};
   const equipe = _maoObraProfis.filter(p => (moQtd[p.id] || 0) > 0);
@@ -1686,10 +1696,8 @@ h1 { font-size: 25px; font-weight: normal; text-align: center; color: #1e4028; l
     ${o.local_evento ? `<div><span>Local</span><b>${esc(o.local_evento)}</b></div>` : ''}
   </div>
   ${cardapio ? `<div class="regua"><span></span><b>Cardápio</b><span></span></div><div class="cardapio">${cardapio}</div>` : ''}
-  ${equipeHtml}
   <div class="valores">
-    <div class="tot"><span>Valor total do evento</span><b>${fmtEUR(precoFinal)}</b></div>
-    <div class="pp"><span>Valor por pessoa</span><b>${fmtEUR(pax)}</b></div>
+    <div class="tot"><span>Valor</span><b>${fmtEUR(precoFinal)}</b></div>
   </div>
   ${o.condicoes && o.condicoes.trim() ? `<div class="cond"><b>Condições</b>${o.condicoes.trim().split('\n').filter(l => l.trim()).map(l => `<p>${esc(l.trim())}</p>`).join('')}</div>` : ''}`}
   <div class="rodape">
