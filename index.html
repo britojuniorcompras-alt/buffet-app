@@ -1879,6 +1879,7 @@ function buildOrcText(id) {
   txt += `\n*Preço Final: ${fmtEUR(precoFinal)}*\n`;
   txt += `Valor/pax: ${fmtEUR(pax)}\n`;
   txt += `Sinal (${o.sinal_percent||0}%): ${fmtEUR(sinalEur)}\n`;
+  txt += `\n*Condições:*\n${condicoesDoOrcamento(o)}\n`;
   return txt;
 }
 // ===== ARQUIVAR eventos que não fecharam (ficam guardados para reaproveitar) =====
