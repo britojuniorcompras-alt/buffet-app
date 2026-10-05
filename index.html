@@ -1932,9 +1932,29 @@ function usarComoModelo(id) {
 // ===== RESUMO DO EVENTO para compartilhar =====
 // Cliente, dia, pratos por grupo (sem quantidade e sem valor), mão de obra,
 // preço de venda total e preço por pessoa.
+// Condições padrão da casa: usadas quando o orçamento não tem condições próprias,
+// pra que TODO material enviado ao cliente saia completo, sem depender de preencher à mão.
+const COND_PADRAO = 'Neste valor está incluso: água com e sem gás, refrigerantes comuns e dietéticos, mão de obra.\n' +
+  'Não está incluso: bebidas alcoólicas e louças em geral.\n' +
+  'Acrescentar 10% referente aos tributos.';
+
+function condicoesDoOrcamento(o) {
+  return (o && o.condicoes && o.condicoes.trim()) ? o.condicoes.trim() : COND_PADRAO;
+}
+
+// Nome que o cliente vê. O ideal é o prato ter "nome para o cliente" cadastrado;
+// quando não tem, limpa as marcações internas (und, pç, 1/2, 300g...) pra não sair nome de cozinha no PDF.
 function nomeParaCliente(i) {
   const pr = _pratos.find(p => p.id === i.prato_id);
-  return (pr && pr.nome_cliente && pr.nome_cliente.trim()) || String(i.nome_prato || '').replace(/\s+und\.?$/i, '').trim();
+  const cadastrado = pr && pr.nome_cliente && pr.nome_cliente.trim();
+  if (cadastrado) return cadastrado;
+  let n = String(i.nome_prato || '').trim();
+  n = n.replace(/\s+(und|un|unid|pç|pc|porç[ãa]o|porcao)\.?$/i, '');  // unidade no fim
+  n = n.replace(/\s+\d+\s*\/\s*\d+$/, '');                            // frações: 1/2, 1/3
+  n = n.replace(/\s+\d+\s*(g|kg|ml|lt|l)$/i, '');                     // gramagens: 300g, 1,5Lt
+  n = n.replace(/\s+c\/\s+/i, ' com ').replace(/\s+s\/\s+/i, ' sem ');
+  n = n.trim();
+  return n ? n.charAt(0).toUpperCase() + n.slice(1) : n;
 }
 function montarResumoEvento(id) {
   const o = _orcamentos.find(x => x.id === id);
@@ -1973,7 +1993,7 @@ function montarResumoEvento(id) {
   });
 
   t += `\nValor: ${brl(precoFinal)}.`;
-  if (o.condicoes && o.condicoes.trim()) t += `\n${o.condicoes.trim()}`;
+  t += `\n${condicoesDoOrcamento(o)}`;
   return t;
 }
 
@@ -2733,7 +2753,7 @@ h1 { font-size: 25px; font-weight: normal; text-align: center; color: #1e4028; l
     <div class="tot"><span>Valor</span><b>${fmtEUR(precoFinal)}</b></div>
     ${pax > 0 ? `<div class="pp"><span>Por convidado</span><b>${fmtEUR(pax)}</b></div>` : ''}
   </div>
-  ${o.condicoes && o.condicoes.trim() ? `<div class="cond"><b>Condições</b>${o.condicoes.trim().split('\n').filter(l => l.trim()).map(l => `<p>${esc(l.trim())}</p>`).join('')}</div>` : ''}`}
+  ${`<div class="cond"><b>Condições</b>${condicoesDoOrcamento(o).split('\n').filter(l => l.trim()).map(l => `<p>${esc(l.trim())}</p>`).join('')}</div>`}`}
   <div class="rodape">
     <div class="nome">A Bela Sintra</div>
     Rua Bela Cintra, 2325 · Cerqueira César · São Paulo/SP<br>
@@ -2807,7 +2827,8 @@ function initOrcForm(orc=null) {
   document.getElementById('orc-taxa').value = txtBR(orc ? (orc.taxa_servico||0) : 0);
   document.getElementById('orc-status').value = orc ? orc.status||'Pendente' : 'Pendente';
   document.getElementById('orc-obs').value = orc ? orc.notas||'' : '';
-  document.getElementById('orc-cond').value = orc ? orc.condicoes||'' : '';
+  // Orçamento novo (ou antigo sem condições) já vem com as condições padrão da casa preenchidas — dá pra editar antes de salvar
+  document.getElementById('orc-cond').value = (orc && orc.condicoes && orc.condicoes.trim()) ? orc.condicoes : COND_PADRAO;
 
   // Set sliders from saved values
   // Orçamento novo já começa com os valores de sempre da casa: 5% quebras, 30% margem, 30% sinal
