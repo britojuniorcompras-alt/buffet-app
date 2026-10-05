@@ -1951,7 +1951,8 @@ function montarResumoEvento(id) {
   if (o.num_pessoas) t += `\n${o.num_pessoas} pessoas.`;
 
   const porCat = {};
-  itens.forEach(i => { const c = catNorm(i.categoria); const n = nomeParaCliente(i); const arr = (porCat[c] = porCat[c] || []); if (!arr.includes(n)) arr.push(n); });
+  // Bebidas ficam fora do cardápio do cliente — elas já estão explicadas nas Condições
+  itens.forEach(i => { const c = catNorm(i.categoria); if (c === 'Bebidas') return; const n = nomeParaCliente(i); const arr = (porCat[c] = porCat[c] || []); if (!arr.includes(n)) arr.push(n); });
   const cats = _catOrder.map(catNorm).filter((c, k, a) => porCat[c] && a.indexOf(c) === k).concat(Object.keys(porCat).filter(c => !_catOrder.map(catNorm).includes(c)));
   const rotulo = { 'Coquetel': 'Coquetel volante', 'Prato Principal': '' };
   cats.forEach(c => {
@@ -2590,7 +2591,8 @@ function resumoPDF(modo) {
   }).join('');
 
   const porCat = {};
-  itens.forEach(i => { const c = catNorm(i.categoria); const n = nomeParaCliente(i); const arr = (porCat[c] = porCat[c] || []); if (!arr.includes(n)) arr.push(n); });
+  // Bebidas ficam fora do cardápio do cliente — elas já estão explicadas nas Condições
+  itens.forEach(i => { const c = catNorm(i.categoria); if (c === 'Bebidas') return; const n = nomeParaCliente(i); const arr = (porCat[c] = porCat[c] || []); if (!arr.includes(n)) arr.push(n); });
   const cats = _catOrder.map(catNorm).filter((c, k, a) => porCat[c] && a.indexOf(c) === k).concat(Object.keys(porCat).filter(c => !_catOrder.map(catNorm).includes(c)));
   const tituloCat = { 'Coquetel': 'Coquetel volante' };
   const juntarNomes = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1];
