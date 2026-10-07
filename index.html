@@ -3940,7 +3940,21 @@ document.addEventListener('DOMContentLoaded', function () {
     b.onclick = voltarGestaoCompras;
     tb.insertBefore(b, tb.firstChild);
   });
+  avisarQueCarregou();
 });
+
+// Quando este app abre dentro da aba Eventos do app de Compras, avisa que carregou.
+// Sem esse aviso, o app de fora não tem como saber se a tela veio mesmo ou se deu erro
+// de rede — e acabava escondendo o "Carregando" com a tela em branco por baixo.
+function avisarQueCarregou() {
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ app: 'buffet', pronto: true }, '*');
+    }
+  } catch (e) { }
+}
+// repete por garantia, caso o app de fora ainda não estivesse escutando
+window.addEventListener('load', function () { avisarQueCarregou(); setTimeout(avisarQueCarregou, 400); });
 </script>
 </body>
 </html>
