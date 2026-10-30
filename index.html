@@ -1148,7 +1148,7 @@ async function loadAll() {
       sb.from('pratos').select('*').order('categoria').order('nome'),
       sb.from('clientes').select('*').order('nome'),
       sb.from('orcamentos').select('*').order('created_at', {ascending:false}),
-      sb.from('orcamento_itens').select('*'),
+      sb.from('orcamento_itens').select('*').order('ordem').order('nome_prato'),
       sb.from('mao_obra_profissionais').select('*').order('grupo').order('nome'),
       sb.from('mao_obra_pagamentos').select('*').order('data_pagamento', {ascending:false})
     ]);
@@ -1625,15 +1625,17 @@ function viewOrc(id) {
     </div>` : '';
 
   // Agrupar itens do cardápio por categoria
+  // Agrupa respeitando a sequência da refeição, não a ordem de lançamento
   const itensPorCat = {};
-  itens.forEach(i => {
-    const cat = i.categoria || 'Sem categoria';
+  ordenarItensEvento(itens).forEach(i => {
+    const cat = catNorm(i.categoria || 'Sem categoria');
     if (!itensPorCat[cat]) itensPorCat[cat] = [];
     itensPorCat[cat].push(i);
   });
-  const cardapioHtml = Object.keys(itensPorCat).length === 0
+  const catsOrdenadas = Object.keys(itensPorCat).sort((a, b) => catRank(a) - catRank(b));
+  const cardapioHtml = catsOrdenadas.length === 0
     ? `<p style="color:var(--cinza-escuro);font-size:13px;padding:8px 0">Nenhum item no cardápio.</p>`
-    : Object.entries(itensPorCat).map(([cat, catItens]) => `
+    : catsOrdenadas.map(cat => [cat, itensPorCat[cat]]).map(([cat, catItens]) => `
       <div style="margin-bottom:14px">
         <div style="font-size:11px;font-weight:700;color:var(--verde-claro);text-transform:uppercase;letter-spacing:0.8px;padding:5px 0;margin-bottom:4px;border-bottom:1px solid rgba(var(--tinta-rgb),0.15)">${cat}</div>
         <table class="orc-itens-table">
@@ -1905,7 +1907,12 @@ function buildOrcText(id) {
   txt += `Local: ${o.local_evento||'—'}\n`;
   txt += `Pessoas: ${o.num_pessoas||0}\n\n`;
   txt += `*Itens:*\n`;
-  itens.forEach(i => { txt += `• ${i.nome_prato} x${i.quantidade} — ${fmtEUR(i.subtotal)}\n`; });
+  let catAtual = null;
+  ordenarItensEvento(itens).forEach(i => {
+    const c = catNorm(i.categoria || 'Outros');
+    if (c !== catAtual) { catAtual = c; txt += `\n_${c}_\n`; }
+    txt += `• ${i.nome_prato} x${i.quantidade} — ${fmtEUR(i.subtotal)}\n`;
+  });
   txt += `\n*Preço Final: ${fmtEUR(precoFinal)}*\n`;
   txt += `Valor/pax: ${fmtEUR(pax)}\n`;
   txt += `Sinal (${o.sinal_percent||0}%): ${fmtEUR(sinalEur)}\n`;
@@ -2003,7 +2010,7 @@ function montarResumoEvento(id) {
 
   const porCat = {};
   // Bebidas ficam fora do cardápio do cliente — elas já estão explicadas nas Condições
-  itens.forEach(i => { const c = catNorm(i.categoria); if (c === 'Bebidas') return; const n = nomeParaCliente(i); const arr = (porCat[c] = porCat[c] || []); if (!arr.includes(n)) arr.push(n); });
+  ordenarItensEvento(itens).forEach(i => { const c = catNorm(i.categoria); if (c === 'Bebidas') return; const n = nomeParaCliente(i); const arr = (porCat[c] = porCat[c] || []); if (!arr.includes(n)) arr.push(n); });
   const cats = _catOrder.map(catNorm).filter((c, k, a) => porCat[c] && a.indexOf(c) === k).concat(Object.keys(porCat).filter(c => !_catOrder.map(catNorm).includes(c)));
   const rotulo = { 'Coquetel': 'Coquetel volante', 'Prato Principal': '' };
   cats.forEach(c => {
@@ -2974,7 +2981,7 @@ function cimPrevia() {
 function cimSecoesDoEvento(o) {
   const itens = _orcItens.filter(i => i.orcamento_id === o.id);
   const porCat = {};
-  itens.forEach(i => { const cat = catNorm(i.categoria); const n = nomeParaCliente(i); const arr = (porCat[cat] = porCat[cat] || []); if (!arr.includes(n)) arr.push(n); });
+  ordenarItensEvento(itens).forEach(i => { const cat = catNorm(i.categoria); const n = nomeParaCliente(i); const arr = (porCat[cat] = porCat[cat] || []); if (!arr.includes(n)) arr.push(n); });
   const cats = _catOrder.map(catNorm).filter((c, k, a) => porCat[c] && a.indexOf(c) === k).concat(Object.keys(porCat).filter(x => !_catOrder.map(catNorm).includes(x)));
   const titulos = { 'Prato Principal': 'Pratos Principais' };
   return cats.map(cat => {
@@ -3077,7 +3084,7 @@ function resumoPDF(modo) {
 
   const porCat = {};
   // Bebidas ficam fora do cardápio do cliente — elas já estão explicadas nas Condições
-  itens.forEach(i => { const c = catNorm(i.categoria); if (c === 'Bebidas') return; const n = nomeParaCliente(i); const arr = (porCat[c] = porCat[c] || []); if (!arr.includes(n)) arr.push(n); });
+  ordenarItensEvento(itens).forEach(i => { const c = catNorm(i.categoria); if (c === 'Bebidas') return; const n = nomeParaCliente(i); const arr = (porCat[c] = porCat[c] || []); if (!arr.includes(n)) arr.push(n); });
   const cats = _catOrder.map(catNorm).filter((c, k, a) => porCat[c] && a.indexOf(c) === k).concat(Object.keys(porCat).filter(c => !_catOrder.map(catNorm).includes(c)));
   const tituloCat = { 'Coquetel': 'Coquetel volante' };
   const juntarNomes = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1];
@@ -3503,6 +3510,27 @@ function bpTecla(ev) {
 function removeItemOrc(idx) { _orcFormItens.splice(idx, 1); renderOrcItens(); updatePricing(); }
 
 const _catOrder = ['Coquetel','Entrada','Prato Principal','Sobremesa','Café','Bebidas','Bebida'];
+
+// Posição do curso na sequência de uma refeição. O que não está na lista
+// vai para o fim, nunca para o meio do cardápio.
+function catRank(c) {
+  const i = _catOrder.map(catNorm).indexOf(catNorm(c));
+  return i < 0 ? 90 : i + 1;
+}
+// Número que põe o item no lugar certo: curso primeiro, depois a posição dele dentro do curso
+function ordemDoItem(cat, posicao) { return catRank(cat) * 100 + (Number(posicao) || 0) + 1; }
+
+// Ordena uma lista de itens de evento na sequência correta do cardápio
+function ordenarItensEvento(itens) {
+  return (itens || []).slice().sort((a, b) => {
+    const ra = catRank(a.categoria), rb = catRank(b.categoria);
+    if (ra !== rb) return ra - rb;
+    const oa = (a.ordem === null || a.ordem === undefined) ? 9999 : Number(a.ordem);
+    const ob = (b.ordem === null || b.ordem === undefined) ? 9999 : Number(b.ordem);
+    if (oa !== ob) return oa - ob;
+    return String(a.nome_prato || '').localeCompare(String(b.nome_prato || ''), 'pt-BR');
+  });
+}
 const _catIcon  = {'Coquetel':'🍢','Entrada':'🥗','Prato Principal':'🍽️','Sobremesa':'🍮','Café':'☕','Bebidas':'🥤','Bebida':'🥤'};
 const _catColor = {'Coquetel':'#e8f5e9','Entrada':'#fff8e1','Prato Principal':'#e3f2fd','Sobremesa':'#fce4ec','Café':'#efebe9','Bebidas':'#e8eaf6','Bebida':'#e8eaf6'};
 const _catText  = {'Coquetel':'#1b5e20','Entrada':'#f57f17','Prato Principal':'#0d47a1','Sobremesa':'#880e4f','Café':'#4e342e','Bebidas':'#283593','Bebida':'#283593'};
@@ -3811,9 +3839,13 @@ async function _saveOrc(doPrint=false) {
       savedId = orcId;
     }
     if (_orcFormItens.length) {
-      const ins = await sb.from('orcamento_itens').insert(_orcFormItens.map(i=>({
+      // "ordem" guarda a sequência certa do cardápio: primeiro o curso
+      // (coquetel, entrada, principal, sobremesa, café, bebidas) e dentro dele
+      // a ordem em que os pratos foram postos no formulário.
+      const ins = await sb.from('orcamento_itens').insert(_orcFormItens.map((i, k)=>({
         orcamento_id: orcId, prato_id: i.pratoId, nome_prato: i.nome,
-        categoria: i.cat, quantidade: i.qtd, preco_unit: i.preco, subtotal: i.sub
+        categoria: i.cat, quantidade: i.qtd, preco_unit: i.preco, subtotal: i.sub,
+        ordem: ordemDoItem(i.cat, k)
       })));
       if (ins.error) {
         if (itensAntigos.length) await sb.from('orcamento_itens').insert(itensAntigos);
